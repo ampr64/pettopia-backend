@@ -1,11 +1,7 @@
 ﻿using Application.Common.Interfaces;
 using Application.Common.Models;
+using Domain.Enumerations;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 
 namespace Infrastructure.Identity
 {
@@ -13,30 +9,18 @@ namespace Infrastructure.Identity
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
-        private readonly IUserClaimsPrincipalFactory<ApplicationUser> _claimsPrincipalFactory;
-        private readonly IConfiguration _configuration;
+        private readonly ITokenClaimsService _tokenClaimsService;
+        private readonly IDateTimeService _dateTimeService;
 
         public IdentityService(UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
-            IUserClaimsPrincipalFactory<ApplicationUser> claimsPrincipalFactory,
-            IConfiguration configuration)
+            ITokenClaimsService tokenClaimsService,
+            IDateTimeService dateTimeService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
-            _claimsPrincipalFactory = claimsPrincipalFactory;
-            _configuration = configuration;
-        }
-
-        public async Task<UserInfo?> GetUserInfoAsync(string email)
-        {
-            var user = await _userManager.FindByEmailAsync(email);
-            if (user == null)
-            {
-                return null;
-            }
-
-            var role = (await _userManager.GetRolesAsync(user)).FirstOrDefault();
-            return user.ToUserInfo(role!);
+            _tokenClaimsService = tokenClaimsService;
+            _dateTimeService = dateTimeService;
         }
 
         public async Task<string?> AuthenticateAsync(string email, string password)
@@ -49,24 +33,32 @@ namespace Infrastructure.Identity
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, password, false);
 
-            return result.Succeeded ? (await GetTokenAsync(user)) : null;
+            return result.Succeeded ? (await _tokenClaimsService.GetTokenAsync(email)) : null;
         }
 
-        private async Task<string> GetTokenAsync(ApplicationUser user)
+        public async Task<Result<string?>> CreateUserAsync(string email, string password, string firstName, string lastName, DateTime birthDate)
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var secret = _configuration.GetValue<string>("AppSecret");
-            var key = Encoding.ASCII.GetBytes(secret);
-            var principal = await _claimsPrincipalFactory.CreateAsync(user);
+            var applicationUser = new ApplicationUser(email, firstName, lastName, birthDate, _dateTimeService);
 
-            var tokenDescriptor = new SecurityTokenDescriptor
+            var result = await _userManager.CreateAsync(applicationUser, password);
+            if (result.Succeeded)
             {
-                Subject = new ClaimsIdentity(principal.Claims),
-                Expires = DateTime.UtcNow.AddDays(7),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-            };
-            var token = tokenHandler.CreateJwtSecurityToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
+                result = await _userManager.AddToRoleAsync(applicationUser, Role.User.Name);
+            }
+
+            return result.ToResultObject(applicationUser.Id);
+        }
+
+        public async Task<UserInfo?> GetUserInfoAsync(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                return null;
+            }
+
+            var role = (await _userManager.GetRolesAsync(user)).Single();
+            return user.ToUserInfo(role);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Application.Common.Models;
+using Microsoft.AspNetCore.Identity;
 
 namespace Infrastructure.Identity
 {
@@ -14,8 +15,17 @@ namespace Infrastructure.Identity
                 FirstName = applicationUser.FirstName!,
                 LastName = applicationUser.LastName!,
                 Id = applicationUser.Id,
-                Role = roleName
+                Role = roleName,
+                BirthDate = applicationUser.BirthDate,
+                RegisteredAt = applicationUser.RegisteredAt,
             };
+        }
+
+        public static Result<string?> ToResultObject(this IdentityResult result, string userId)
+        {
+            return result.Succeeded
+                ? Result<string?>.Success(userId)
+                : Result<string?>.Failure(result.Errors.Select(e => e.Description));
         }
     }
 }

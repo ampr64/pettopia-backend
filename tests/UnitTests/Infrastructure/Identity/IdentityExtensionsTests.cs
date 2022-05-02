@@ -1,30 +1,26 @@
-﻿using FluentAssertions;
+﻿using AutoFixture.Xunit2;
+using FluentAssertions;
 using Infrastructure.Identity;
 using Moq;
-using NUnit.Framework;
+using Xunit;
+
 namespace UnitTests.Infrastructure.Identity
 {
     public class IdentityExtensionsTests
     {
-        [Test]
-        public void ToUserInfo_ShouldMapAllPropertiesCorrectly()
+        [Theory, AutoData]
+        public void ToUserInfo_ShouldMapAllPropertiesCorrectly(ApplicationUser sut, string role)
         {
-            var role = "User";
-            var applicationUserStub = new ApplicationUser("appuser@admin.com", "Test", "Last")
-            {
-                Id = "123",
-            };
+            var actual = sut.ToUserInfo(role);
 
-            var actual = applicationUserStub.ToUserInfo(role);
-
-            actual.Email.Should().Be(applicationUserStub.Email);
-            actual.FirstName.Should().Be(applicationUserStub.FirstName);
-            actual.LastName.Should().Be(applicationUserStub.LastName);
-            actual.Id.Should().Be(applicationUserStub.Id);
+            actual.Email.Should().Be(sut.Email);
+            actual.FirstName.Should().Be(sut.FirstName);
+            actual.LastName.Should().Be(sut.LastName);
+            actual.Id.Should().Be(sut.Id);
             actual.Role.Should().Be(role);
         }
 
-        [Test]
+        [Fact]
         public void ToUserInfo_ShouldThrowArgumentNullException_WhenApplicationUserIsNull()
         {
             ApplicationUser? applicationUser = null;

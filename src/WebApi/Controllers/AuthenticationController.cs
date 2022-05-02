@@ -8,8 +8,8 @@ namespace WebApi.Controllers
     public class AuthenticationController : ApiControllerBase
     {
         [HttpPost]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AuthenticateDto))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [Produces(MediaTypeNames.Application.Json)]
         public async Task<ActionResult<AuthenticateDto>> Authenticate(AuthenticateCommand command)

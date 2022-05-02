@@ -9,10 +9,11 @@ namespace Application.Features.Authentication.Commands.Authenticate
             RuleFor(_ => _.Email)
                 .NotEmpty()
                 .EmailAddress()
-                .MaximumLength(256);
+                .MaximumLength(100);
 
             RuleFor(_ => _.Password)
                 .NotEmpty()
+                .MinimumLength(6)
                 .MaximumLength(100);
         }
     }

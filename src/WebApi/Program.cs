@@ -1,4 +1,5 @@
 using Application;
+using Application.Common.Interfaces;
 using FluentValidation.AspNetCore;
 using Infrastructure;
 using Infrastructure.Identity;
@@ -29,8 +30,9 @@ using (var scope = app.Services.CreateScope())
     var dbContext = serviceProvider.GetRequiredService<PettopiaDbContext>();
     var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
     var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var dateTimeService = serviceProvider.GetRequiredService<IDateTimeService>();
 
-    await PettopiaDbContextSeed.SeedAsync(dbContext, userManager, roleManager, app.Logger);
+    await PettopiaDbContextSeed.SeedAsync(dbContext, userManager, roleManager, dateTimeService, app.Logger);
 }
 
 

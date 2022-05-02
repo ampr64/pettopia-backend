@@ -1,4 +1,5 @@
-﻿using Domain.Enumerations;
+﻿using Application.Common.Interfaces;
+using Domain.Enumerations;
 using Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,7 @@ namespace Infrastructure.Persistence
         public static async Task SeedAsync(PettopiaDbContext dbContext,
             UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager,
+            IDateTimeService dateTimeService,
             ILogger logger,
             int retryLimit = 5)
         {
@@ -22,7 +24,7 @@ namespace Infrastructure.Persistence
                 }
 
                 await SeedDefaultRolesAsync(roleManager);
-                await SeedDefaultUsersAsync(userManager);
+                await SeedDefaultUsersAsync(userManager, dateTimeService);
 
                 await dbContext.SaveChangesAsync();
             }
@@ -32,8 +34,8 @@ namespace Infrastructure.Persistence
 
                 retryLimit--;
 
-                logger.LogError(ex.Message, "An error occurred while migrating or seeding the database, retrying...");
-                await SeedAsync(dbContext, userManager, roleManager, logger, retryLimit);
+                logger.LogError(ex, "An error occurred while migrating or seeding the database, retrying...");
+                await SeedAsync(dbContext, userManager, roleManager, dateTimeService, logger, retryLimit);
             }
         }
 
@@ -53,9 +55,9 @@ namespace Infrastructure.Persistence
             }
         }
 
-        private static async Task SeedDefaultUsersAsync(UserManager<ApplicationUser> userManager)
+        private static async Task SeedDefaultUsersAsync(UserManager<ApplicationUser> userManager, IDateTimeService dateTimeService)
         {
-            var defaultUser = new ApplicationUser("admin@petutopia.com", "Admin", "Admin");
+            var defaultUser = new ApplicationUser("admin@petutopia.com", "Admin", "Admin", new DateTime(1990, 1, 1), dateTimeService);
 
             if (!await userManager.Users.AnyAsync(u => u.UserName == defaultUser.UserName))
             {

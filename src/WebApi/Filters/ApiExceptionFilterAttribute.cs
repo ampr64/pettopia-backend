@@ -11,6 +11,7 @@ namespace WebApi.Filters
             Action<ExceptionContext> handler = context.Exception switch
             {
                 AuthenticationFailedException ex => HandleAuthenticationFailedException,
+                UnprocessableEntityException ex => HandleUnprocessableEntityException,
                 _ => HandleUnknownException
             };
 
@@ -31,6 +32,20 @@ namespace WebApi.Filters
             };
 
             context.Result = new ObjectResult(details);
+        }
+
+        private static void HandleUnprocessableEntityException(ExceptionContext context)
+        {
+            var details = new
+            {
+                Detail = context.Exception.Message,
+                Status = StatusCodes.Status422UnprocessableEntity,
+                Title = "Unprocessable entity",
+                Type = "https://datatracker.ietf.org/doc/html/rfc4918#section-11.2",
+                ((UnprocessableEntityException)context.Exception).Errors
+            };
+
+            context.Result = new UnprocessableEntityObjectResult(details);
         }
 
         private static void HandleUnknownException(ExceptionContext context)

@@ -1,12 +1,14 @@
 ﻿using Application.Common.Interfaces;
 using Infrastructure.Identity;
 using Infrastructure.Persistence;
+using Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 
 namespace Infrastructure
@@ -47,6 +49,9 @@ namespace Infrastructure
                 });
 
             services.AddTransient<IIdentityService, IdentityService>();
+            services.AddTransient<ITokenClaimsService, IdentityTokenClaimsService>();
+            services.AddTransient<IDateTimeService, UtcDateTimeService>();
+            services.AddTransient<JwtSecurityTokenHandler>();
 
             return services;
         }

@@ -1,55 +1,79 @@
 ﻿using Application.Features.Authentication.Commands.Authenticate;
-using AutoFixture;
+using AutoFixture.Xunit2;
 using FluentValidation.TestHelper;
-using NUnit.Framework;
-using System.Linq.Expressions;
+using UnitTests.Configuration;
+using Xunit;
 
 namespace UnitTests.Application.Features.Authentication.Commands.Authenticate
 {
     public class AuthenticateCommandValidatorTests
     {
-        [Test]
-        [TestCase(null)]
-        [TestCase("")]
-        [TestCase("  ")]
-        public void Validate_ShouldHaveErrorWhenPasswordIsEmpty(string password)
+        [Theory]
+        [InlineAutoData(null)]
+        [InlineAutoData("")]
+        [InlineAutoData("  ")]
+        [InlineAutoData("       ")]
+        public void Validate_ShouldHaveError_WhenPasswordIsEmpty(string password, AuthenticateCommandValidator sut, AuthenticateCommand command)
         {
-            SetUpTestForValidationError(c => c.Password, password);
+            command.Password = password;
+            var actual = sut.TestValidate(command);
+
+            actual.ShouldHaveValidationErrorFor(c => c.Password)
+                .WithErrorCode("NotEmptyValidator");
         }
 
-        [Test]
-        [TestCase(null)]
-        [TestCase("")]
-        [TestCase("   ")]
-        public void Validate_ShouldHaveErrorWhenEmailIsEmpty(string email)
+        [Theory]
+        [InlineAutoData("")]
+        [InlineAutoData("a")]
+        [InlineAutoData("aa")]
+        [InlineAutoData("aaa")]
+        public void Validate_ShouldHaveError_WhenPasswordLengthIsLessThanMinimum(string shortPassword, AuthenticateCommandValidator sut, AuthenticateCommand command)
         {
-            SetUpTestForValidationError(c => c.Email, email);
+            command.Password = shortPassword;
+            var actual = sut.TestValidate(command);
+
+            actual.ShouldHaveValidationErrorFor(c => c.Password)
+                .WithErrorCode("MinimumLengthValidator");
         }
 
-        [Test]
-        [TestCase(".com")]
-        [TestCase("test.com")]
-        [TestCase("test@.com@")]
-        [TestCase("test.com@")]
-        [TestCase("@.com")]
-        [TestCase("@")]
-        [TestCase("a@")]
-        public void Validate_ShouldHaveErrorForEmail_WhenAtSignIsAtBeginningOrEndOrIsNotPresent(string email)
+        [Theory, AutoMoqData]
+        public void Validate_ShouldHaveError_WhenPasswordLengthIsGreaterThanMaximum(string longPassword, AuthenticateCommandValidator sut, AuthenticateCommand command)
         {
-            SetUpTestForValidationError(c => c.Email, email);
+            command.Password = longPassword;
+            var actual = sut.TestValidate(command);
+
+            actual.ShouldHaveValidationErrorFor(c => c.Password)
+                .WithErrorCode("MaximumLengthValidator");
         }
 
-        private static void SetUpTestForValidationError(Expression<Func<AuthenticateCommand, string>> propertySelector, string value)
+        [Theory]
+        [InlineAutoData(null)]
+        [InlineAutoData("")]
+        [InlineAutoData("   ")]
+        public void Validate_ShouldHaveError_WhenEmailIsEmpty(string email, AuthenticateCommandValidator sut, AuthenticateCommand command)
         {
-            var command = new Fixture()
-                .Build<AuthenticateCommand>()
-                .With(propertySelector, value)
-                .Create();
-            var validator = new AuthenticateCommandValidator();
+            command.Email = email;
+            var actual = sut.TestValidate(command);
 
-            var actual = validator.TestValidate(command);
+            actual.ShouldHaveValidationErrorFor(c => c.Email)
+                .WithErrorCode("NotEmptyValidator");
+        }
 
-            actual.ShouldHaveValidationErrorFor(propertySelector);
+        [Theory]
+        [AutoMoqInlineData(".com")]
+        [AutoMoqInlineData("Theory.com")]
+        [AutoMoqInlineData("Theory@.com@")]
+        [AutoMoqInlineData("Theory.com@")]
+        [AutoMoqInlineData("@.com")]
+        [AutoMoqInlineData("@")]
+        [AutoMoqInlineData("a@")]
+        public void Validate_ShouldHaveErrorForEmail_WhenAtSignIsAtBeginningOrEndOrIsNotPresent(string email, AuthenticateCommandValidator sut, AuthenticateCommand command)
+        {
+            command.Email = email;
+            var actual = sut.TestValidate(command);
+
+            actual.ShouldHaveValidationErrorFor(c => c.Email)
+                .WithErrorCode("EmailValidator");
         }
     }
 }
