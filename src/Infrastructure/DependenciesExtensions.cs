@@ -1,5 +1,6 @@
 ﻿using Application.Common.Interfaces;
 using Infrastructure.Identity;
+using Infrastructure.Mail;
 using Infrastructure.Persistence;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -52,7 +53,7 @@ namespace Infrastructure
             services.AddTransient<ITokenClaimsService, IdentityTokenClaimsService>();
             services.AddTransient<IDateTimeService, UtcDateTimeService>();
             services.AddTransient<JwtSecurityTokenHandler>();
-
+            services.AddTransient<IEmailService, SmtpEmailService>();
             return services;
         }
     }
