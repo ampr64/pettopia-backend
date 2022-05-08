@@ -1,5 +1,4 @@
 ﻿using Application.Common.Interfaces;
-using Domain.Enumerations;
 using Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using UnitTests.Configuration.Identity;
@@ -76,20 +75,19 @@ namespace UnitTests.Infrastructure.Identity
         [Theory(Skip = "UserManager mock failing."), IdentityAutoData]
         public async Task CreateUser_ShouldReturnSuccessWithUserId_WhenCreatedSuccessfully([Frozen] Mock<UserManager<ApplicationUser>> userManagerMock,
             IdentityService sut,
-            ApplicationUser user)
+            ApplicationUser user,
+            string role,
+            string password)
         {
-            var expectedRole = Role.User.Name;
-            var password = "User123!";
-
             userManagerMock
                 .Setup(u => u.CreateAsync(user))
                 .ReturnsAsync(IdentityResult.Success);
 
             userManagerMock
-                .Setup(u => u.AddToRoleAsync(user, expectedRole))
+                .Setup(u => u.AddToRoleAsync(user, role))
                 .ReturnsAsync(IdentityResult.Success);
 
-            var actual = await sut.CreateUserAsync(user.Email, password, user.FirstName, user.LastName, user.BirthDate);
+            var actual = await sut.CreateUserAsync(user.Email, password, user.FirstName, user.LastName, user.BirthDate, role);
 
             actual.Succeeded.Should().BeTrue();
             actual.Data.Should().NotBeNull();

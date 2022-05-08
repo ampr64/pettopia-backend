@@ -13,7 +13,7 @@ namespace Application.Common.Interfaces
         Task<string?> AuthenticateAsync(string email, string password);
 
         /// <summary>
-        /// Creates a new user.
+        /// Creates a new user with the specified role.
         /// </summary>
         /// <param name="email">The email address.</param>
         /// <param name="password">The password.</param>
@@ -21,7 +21,7 @@ namespace Application.Common.Interfaces
         /// <param name="lastName">The last name.</param>
         /// <param name="birthDate">The date of birth.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation, containing the <see cref="Result{string}"/> of the operation.</returns>
-        Task<Result<string?>> CreateUserAsync(string email, string password, string firstName, string lastName, DateTime birthDate);
+        Task<Result<string?>> CreateUserAsync(string email, string password, string firstName, string lastName, DateTime birthDate, string role);
 
         /// <summary>
         /// Gets the user info.

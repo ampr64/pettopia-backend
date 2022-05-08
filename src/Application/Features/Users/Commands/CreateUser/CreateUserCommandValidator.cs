@@ -1,4 +1,5 @@
 ﻿using Application.Common.Interfaces;
+using Domain.Enumerations;
 using FluentValidation;
 
 namespace Application.Features.Users.Commands.CreateUser
@@ -27,6 +28,16 @@ namespace Application.Features.Users.Commands.CreateUser
 
             RuleFor(c => c.BirthDate)
                 .LessThan(dateTimeService.Now);
+
+            RuleFor(c => c.Role)
+                .NotEmpty()
+                .Must(BeValidRole)
+                .WithMessage("Invalid role.");
+        }
+
+        private bool BeValidRole(string role)
+        {
+            return Role.TryFromName(role, true, out _);
         }
     }
 }

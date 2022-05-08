@@ -1,6 +1,5 @@
 ﻿using Application.Common.Interfaces;
 using Application.Common.Models;
-using Domain.Enumerations;
 using Microsoft.AspNetCore.Identity;
 
 namespace Infrastructure.Identity
@@ -36,14 +35,14 @@ namespace Infrastructure.Identity
             return result.Succeeded ? (await _tokenClaimsService.GetTokenAsync(email)) : null;
         }
 
-        public async Task<Result<string?>> CreateUserAsync(string email, string password, string firstName, string lastName, DateTime birthDate)
+        public async Task<Result<string?>> CreateUserAsync(string email, string password, string firstName, string lastName, DateTime birthDate, string role)
         {
             var applicationUser = new ApplicationUser(email, firstName, lastName, birthDate, _dateTimeService);
 
             var result = await _userManager.CreateAsync(applicationUser, password);
             if (result.Succeeded)
             {
-                result = await _userManager.AddToRoleAsync(applicationUser, Role.User.Name);
+                result = await _userManager.AddToRoleAsync(applicationUser, role);
             }
 
             return result.ToResultObject(applicationUser.Id);

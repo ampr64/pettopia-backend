@@ -11,6 +11,7 @@ namespace WebApi.Filters
             Action<ExceptionContext> handler = context.Exception switch
             {
                 AuthenticationFailedException ex => HandleAuthenticationFailedException,
+                ForbiddenAccessException ex => HandleForbiddenAccessException,
                 UnprocessableEntityException ex => HandleUnprocessableEntityException,
                 _ => HandleUnknownException
             };
@@ -32,6 +33,21 @@ namespace WebApi.Filters
             };
 
             context.Result = new ObjectResult(details);
+        }
+
+        private void HandleForbiddenAccessException(ExceptionContext context)
+        {
+            var details = new ProblemDetails
+            {
+                Status = StatusCodes.Status403Forbidden,
+                Title = "Forbidden",
+                Type = "https://tools.ietf.org/html/rfc7231#section-6.5.3"
+            };
+
+            context.Result = new ObjectResult(details)
+            {
+                StatusCode = StatusCodes.Status403Forbidden
+            };
         }
 
         private static void HandleUnprocessableEntityException(ExceptionContext context)
