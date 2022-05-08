@@ -60,5 +60,18 @@ namespace Infrastructure.Identity
             var role = (await _userManager.GetRolesAsync(user)).Single();
             return user.ToUserInfo(role);
         }
+
+        public async Task<IReadOnlyList<UserInfo?>> GetUsersByRole(string role)
+        {
+            var users = await _userManager.GetUsersInRoleAsync(role);
+            if (users == null)
+            {
+                var emptyList = new List<UserInfo>();
+                return emptyList;
+            }
+
+            var result = IdentityExtensions.ToUserInfo(users);
+            return result;
+        }
     }
 }

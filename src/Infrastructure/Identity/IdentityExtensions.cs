@@ -27,5 +27,22 @@ namespace Infrastructure.Identity
                 ? Result<string?>.Success(userId)
                 : Result<string?>.Failure(result.Errors.Select(e => e.Description));
         }
+
+        public static List<UserInfo> ToUserInfo(this IList<ApplicationUser> applicationUser)
+        {
+            if (applicationUser == null) throw new ArgumentNullException(nameof(applicationUser));
+
+            var users = new List<UserInfo>();
+            foreach (var user in applicationUser)
+            {
+                var userInfo = new UserInfo();
+                userInfo.Email = user.Email;
+                userInfo.FirstName = user.FirstName;
+                userInfo.LastName = user.LastName;
+                userInfo.Id = user.Id;
+                users.Add(userInfo);
+            }
+            return users;
+        }
     }
 }

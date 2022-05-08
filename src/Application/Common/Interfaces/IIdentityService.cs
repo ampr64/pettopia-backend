@@ -29,5 +29,12 @@ namespace Application.Common.Interfaces
         /// <param name="email">The email.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation, containing the <see cref="UserInfo"/> if it exists, else null.</returns>
         Task<UserInfo?> GetUserInfoAsync(string email);
+
+        /// <summary>
+        /// Gets a list of users with the specified role.
+        /// </summary>
+        /// <param name="role"></param>
+        /// <returns>The <see cref="Task"/> that represents the asynchronous operation, containing the list of users.</returns>
+        Task<IReadOnlyList<UserInfo?>> GetUsersByRole(string role);
     }
 }
