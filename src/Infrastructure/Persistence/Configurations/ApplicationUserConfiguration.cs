@@ -8,11 +8,31 @@ namespace Infrastructure.Persistence.Configurations
     {
         public void Configure(EntityTypeBuilder<ApplicationUser> builder)
         {
-            builder.Property(a => a.FirstName)
+            builder.Property(au => au.FirstName)
                 .HasMaxLength(100);
             
-            builder.Property(a => a.LastName)
+            builder.Property(au => au.LastName)
                 .HasMaxLength(100);
+
+            builder.OwnsOne(au => au.Address, a =>
+            {
+                a.Property(a => a.Province)
+                .HasMaxLength(50);
+
+                a.Property(a => a.City)
+                    .HasMaxLength(50);
+
+                a.Property(a => a.Line1)
+                    .HasMaxLength(50);
+
+                a.Property(a => a.Line2)
+                    .HasMaxLength(20);
+
+                a.Property(a => a.ZipCode)
+                    .HasMaxLength(10);
+
+                a.WithOwner();
+            });
         }
     }
 }

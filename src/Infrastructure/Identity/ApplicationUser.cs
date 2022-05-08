@@ -1,4 +1,5 @@
 ﻿using Application.Common.Interfaces;
+using Domain.ValueObjects;
 using Microsoft.AspNetCore.Identity;
 
 namespace Infrastructure.Identity
@@ -11,7 +12,9 @@ namespace Infrastructure.Identity
 
         public DateTime BirthDate { get; set; }
 
-        public DateTime RegisteredAt { get; private set; }
+        public Address? Address { get; set; }
+
+        public DateTime RegisteredAt { get; private init; }
 
         public string? ProfilePictureUrl { get; set; }
 

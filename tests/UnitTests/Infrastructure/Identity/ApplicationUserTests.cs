@@ -1,17 +1,12 @@
 ﻿using Application.Common.Interfaces;
-using AutoFixture.Xunit2;
-using FluentAssertions;
 using Infrastructure.Identity;
-using Moq;
-using UnitTests.Configuration;
-using Xunit;
 
 namespace UnitTests.Infrastructure.Identity
 {
     public class ApplicationUserTests
     {
         [Theory, AutoMoqData]
-        public async Task ConstructorForNewUser_ShouldSetRegisteredAtToCurrentDate([Frozen] Mock<IDateTimeService> dateTimeServiceMock,
+        public void ConstructorForNewUser_ShouldSetRegisteredAtToCurrentDate([Frozen] Mock<IDateTimeService> dateTimeServiceMock,
             DateTime expectedDate,
             string email,
             string firstName,
@@ -41,6 +36,19 @@ namespace UnitTests.Infrastructure.Identity
             user.FirstName.Should().Be(firstName);
             user.LastName.Should().Be(lastName);
             user.BirthDate.Should().Be(birthDate);
+        }
+
+        [Theory, AutoMoqData]
+        public void Constructor_ShouldInitializeIdWithGuidString(string email,
+            string firstName,
+            string lastName,
+            DateTime birthDate)
+        {
+            var user = new ApplicationUser(email, firstName, lastName, birthDate);
+            var parseResult = Guid.TryParse(user.Id, out var userIdGuid);
+
+            parseResult.Should().BeTrue();
+            userIdGuid.Should().Be(user.Id);
         }
     }
 }

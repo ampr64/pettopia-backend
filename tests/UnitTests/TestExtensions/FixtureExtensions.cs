@@ -1,7 +1,4 @@
-﻿using AutoFixture;
-using Moq;
-
-namespace UnitTests.TestExtensions
+﻿namespace UnitTests.TestExtensions
 {
     internal static class FixtureExtensions
     {

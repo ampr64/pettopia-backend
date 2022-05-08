@@ -1,8 +1,4 @@
 ﻿using Application.Features.Authentication.Commands.Authenticate;
-using AutoFixture.Xunit2;
-using FluentValidation.TestHelper;
-using UnitTests.Configuration;
-using Xunit;
 
 namespace UnitTests.Application.Features.Authentication.Commands.Authenticate
 {

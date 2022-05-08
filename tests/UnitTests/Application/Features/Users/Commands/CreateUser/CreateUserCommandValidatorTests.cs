@@ -1,7 +1,5 @@
 ﻿using Application.Features.Users.Commands.CreateUser;
 using FluentValidation.TestHelper;
-using UnitTests.Configuration;
-using Xunit;
 
 namespace UnitTests.Application.Features.Users.Commands.CreateUser
 {

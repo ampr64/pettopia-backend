@@ -1,8 +1,4 @@
-﻿using AutoFixture.Xunit2;
-using FluentAssertions;
-using Infrastructure.Identity;
-using Moq;
-using Xunit;
+﻿using Infrastructure.Identity;
 
 namespace UnitTests.Infrastructure.Identity
 {

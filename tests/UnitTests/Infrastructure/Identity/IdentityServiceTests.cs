@@ -1,12 +1,8 @@
 ﻿using Application.Common.Interfaces;
-using AutoFixture.Xunit2;
 using Domain.Enumerations;
-using FluentAssertions;
 using Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
-using Moq;
 using UnitTests.Configuration.Identity;
-using Xunit;
 
 namespace UnitTests.Infrastructure.Identity
 {
