@@ -1,4 +1,6 @@
-﻿namespace Application.Features.Users
+﻿using Domain.ValueObjects;
+
+namespace Application.Features.Users
 {
     public class UserDto
     {
@@ -15,5 +17,6 @@
         public DateTime BirthDate { get; set; }
 
         public DateTime RegisteredAt { get; set; }
+
     }
 }

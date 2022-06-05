@@ -13,6 +13,7 @@ namespace WebApi.Filters
                 AuthenticationFailedException ex => HandleAuthenticationFailedException,
                 ForbiddenAccessException ex => HandleForbiddenAccessException,
                 UnprocessableEntityException ex => HandleUnprocessableEntityException,
+                NotFoundException ex => HandleNotFoundException,
                 _ => HandleUnknownException
             };
 
@@ -47,6 +48,22 @@ namespace WebApi.Filters
             context.Result = new ObjectResult(details)
             {
                 StatusCode = StatusCodes.Status403Forbidden
+            };
+        }
+
+        private static void HandleNotFoundException(ExceptionContext context)
+        {
+            var details = new
+            {
+                Detail = context.Exception.Message,
+                Status = StatusCodes.Status404NotFound,
+                Title = "Not Found",
+                Type = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.4"
+            };
+
+            context.Result = new ObjectResult(details)
+            {
+                StatusCode = StatusCodes.Status404NotFound
             };
         }
 

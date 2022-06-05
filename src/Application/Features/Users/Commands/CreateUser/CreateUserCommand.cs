@@ -24,7 +24,7 @@ namespace Application.Features.Users.Commands.CreateUser
     {
         private readonly IIdentityService _identityService;
 
-        public static string[] ForbiddenRoles => new[] { Role.Admin.Name };
+        public static string[] ForbiddenRoles => new[] { Role.Admin.Name, Role.BackOfficeUser.Name };
 
         public CreateUserCommandHandler(IIdentityService identityService)
         {

@@ -41,15 +41,19 @@ namespace Infrastructure.Persistence
 
         private static async Task SeedDefaultRolesAsync(RoleManager<IdentityRole> roleManager)
         {
-            if (!await roleManager.Roles.AnyAsync())
-            {
-                foreach (var role in Role.List)
-                {
-                    var identityRole = new IdentityRole(role.Name)
-                    {
-                        Id = role.Value
-                    };
+            var dbRoles = await roleManager.Roles.ToListAsync();
 
+            foreach (var role in Role.List)
+            {
+                var identityRole = new IdentityRole(role.Name)
+                {
+                    Id = role.Value
+                };
+
+                bool exist = dbRoles.Any(x => x.Id == identityRole.Id);
+
+                if (!exist)
+                {
                     await roleManager.CreateAsync(identityRole);
                 }
             }

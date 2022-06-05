@@ -20,7 +20,7 @@ namespace Application.Features.Users.Queries
 
         public async Task<IReadOnlyList<UserDto>> Handle(GetUsersQuery request, CancellationToken cancellationToken)
         {
-            var usersInfo = await _identityService.GetUsersByRole(request.Role);
+            var usersInfo = await _identityService.GetUsersByRoleAsync(request.Role);
             var result = UserInfoToUserDto.ToUserDto(usersInfo);
 
             return result;
