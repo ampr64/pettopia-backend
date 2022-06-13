@@ -5,6 +5,7 @@ using Application.Features.Users.Commands.DeleteUser;
 using Application.Features.Users.Commands.UpdateUser;
 using Application.Features.Users.Queries;
 using Microsoft.AspNetCore.Authorization;
+using Application.Features.Users.Queries.GetCurrentUser;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Mime;
 
@@ -12,6 +13,16 @@ namespace WebApi.Controllers
 {
     public class UsersController : ApiControllerBase
     {
+        [Authorize]
+        [HttpGet(nameof(Me))]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Produces(MediaTypeNames.Application.Json)]
+        public async Task<ActionResult<UserDto>> Me()
+        {
+            return Ok(await Mediator.Send(new GetCurrentUserQuery()));
+        }
+
         [HttpGet]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]

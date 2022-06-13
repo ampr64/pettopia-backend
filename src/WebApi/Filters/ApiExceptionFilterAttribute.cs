@@ -11,6 +11,7 @@ namespace WebApi.Filters
             Action<ExceptionContext> handler = context.Exception switch
             {
                 AuthenticationFailedException ex => HandleAuthenticationFailedException,
+                UnauthorizedAccessException ex => HandleUnauthorizedAccessException,
                 ForbiddenAccessException ex => HandleForbiddenAccessException,
                 UnprocessableEntityException ex => HandleUnprocessableEntityException,
                 NotFoundException ex => HandleNotFoundException,
@@ -28,6 +29,18 @@ namespace WebApi.Filters
             var details = new ProblemDetails
             {
                 Detail = context.Exception.Message,
+                Status = StatusCodes.Status401Unauthorized,
+                Title = "Unauthorized",
+                Type = "https://tools.ietf.org/html/rfc7235#section-3.1"
+            };
+
+            context.Result = new ObjectResult(details);
+        }
+
+        private static void HandleUnauthorizedAccessException(ExceptionContext context)
+        {
+            var details = new ProblemDetails
+            {
                 Status = StatusCodes.Status401Unauthorized,
                 Title = "Unauthorized",
                 Type = "https://tools.ietf.org/html/rfc7235#section-3.1"

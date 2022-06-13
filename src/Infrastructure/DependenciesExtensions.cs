@@ -35,6 +35,8 @@ namespace Infrastructure
                 .AddAuthentication(authOpts => authOpts.DefaultScheme = JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(jwtOpts =>
                 {
+                    jwtOpts.SaveToken = true;
+
                     var secret = configuration.GetValue<string>("AppSecret");
                     var key = Encoding.ASCII.GetBytes(secret);
                     jwtOpts.TokenValidationParameters = new TokenValidationParameters
@@ -54,6 +56,7 @@ namespace Infrastructure
             services.AddTransient<IDateTimeService, UtcDateTimeService>();
             services.AddTransient<JwtSecurityTokenHandler>();
             services.AddTransient<IEmailService, SmtpEmailService>();
+
             return services;
         }
     }

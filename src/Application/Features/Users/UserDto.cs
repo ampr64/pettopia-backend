@@ -2,7 +2,7 @@
 
 namespace Application.Features.Users
 {
-    public class UserDto
+    public record UserDto
     {
         public string Id { get; set; } = null!;
 

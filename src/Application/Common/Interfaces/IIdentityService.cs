@@ -1,4 +1,5 @@
 ﻿using Application.Common.Models;
+using System.Security.Claims;
 
 namespace Application.Common.Interfaces
 {
@@ -29,6 +30,13 @@ namespace Application.Common.Interfaces
         /// <param name="email">The email.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation, containing the <see cref="UserInfo"/> if it exists, else null.</returns>
         Task<UserInfo?> GetUserInfoAsync(string email);
+
+        /// <summary>
+        /// Gets the user info for the given <see cref="ClaimsPrincipal"/>.
+        /// </summary>
+        /// <param name="email">The email.</param>
+        /// <returns>The <see cref="Task"/> that represents the asynchronous operation, containing the <see cref="UserInfo"/> if it exists, else null.</returns>
+        Task<UserInfo?> GetUserInfoAsync(ClaimsPrincipal principal);
 
         /// <summary>
         /// Gets a list of users with the specified role.

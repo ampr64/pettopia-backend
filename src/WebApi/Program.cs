@@ -1,25 +1,17 @@
 using Application;
 using Application.Common.Interfaces;
-using FluentValidation.AspNetCore;
 using Infrastructure;
 using Infrastructure.Identity;
 using Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
-using WebApi.Configurations;
-using WebApi.Filters;
+using WebApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers(options => options.Filters.Add<ApiExceptionFilterAttribute>())
-    .AddFluentValidation();
-
-builder.Services.AddEndpointsApiExplorer();
-
-builder.Services.ConfigureSwagger();
-
 builder.Services
     .AddApplication()
-    .AddInfrastructure(builder.Configuration);
+    .AddInfrastructure(builder.Configuration)
+    .AddWeb();
 
 var app = builder.Build();
 
@@ -35,7 +27,6 @@ using (var scope = app.Services.CreateScope())
     await PettopiaDbContextSeed.SeedAsync(dbContext, userManager, roleManager, dateTimeService, app.Logger);
 }
 
-
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -43,6 +34,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();

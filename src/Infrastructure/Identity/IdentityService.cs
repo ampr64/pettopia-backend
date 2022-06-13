@@ -2,6 +2,7 @@
 using Application.Common.Models;
 using Domain.Enumerations;
 using Microsoft.AspNetCore.Identity;
+using System.Security.Claims;
 
 namespace Infrastructure.Identity
 {
@@ -47,6 +48,19 @@ namespace Infrastructure.Identity
             }
 
             return result.ToResultObject(applicationUser.Id);
+        }
+
+        public async Task<UserInfo?> GetUserInfoAsync(ClaimsPrincipal principal)
+        {
+            _ = principal ?? throw new ArgumentNullException(nameof(principal));
+            var user = await _userManager.GetUserAsync(principal);
+            if (user is null)
+            {
+                return null;
+            }
+
+            var role = await GetUserRoleAsync(user);
+            return user.ToUserInfo(role);
         }
 
         public async Task<UserInfo?> GetUserInfoAsync(string email)
@@ -124,6 +138,11 @@ namespace Infrastructure.Identity
             }
 
             return result.ToResultObject(applicationUser.Id);
+        }
+
+        private async Task<string> GetUserRoleAsync(ApplicationUser user)
+        {
+            return (await _userManager.GetRolesAsync(user)).Single();
         }
     }
 }
