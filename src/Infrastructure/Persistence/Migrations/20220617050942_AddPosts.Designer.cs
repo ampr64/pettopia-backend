@@ -4,6 +4,7 @@ using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(PettopiaDbContext))]
-    partial class PettopiaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220617050942_AddPosts")]
+    partial class AddPosts
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -65,7 +67,7 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.HasIndex("CreatedBy");
 
-                    b.ToTable("Posts", (string)null);
+                    b.ToTable("Posts");
                 });
 
             modelBuilder.Entity("Infrastructure.Identity.ApplicationUser", b =>
@@ -293,7 +295,7 @@ namespace Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.OwnsMany("Domain.Entities.Post.Images#Domain.Entities.PostImage", "Images", b1 =>
+                    b.OwnsMany("Domain.Entities.PostImage", "Images", b1 =>
                         {
                             b1.Property<Guid>("PostId")
                                 .HasColumnType("uniqueidentifier");
@@ -313,7 +315,7 @@ namespace Infrastructure.Persistence.Migrations
 
                             b1.HasKey("PostId", "Id");
 
-                            b1.ToTable("PostImage", (string)null);
+                            b1.ToTable("PostImage");
 
                             b1.WithOwner()
                                 .HasForeignKey("PostId");
@@ -324,7 +326,7 @@ namespace Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Infrastructure.Identity.ApplicationUser", b =>
                 {
-                    b.OwnsOne("Infrastructure.Identity.ApplicationUser.Address#Domain.ValueObjects.Address", "Address", b1 =>
+                    b.OwnsOne("Domain.ValueObjects.Address", "Address", b1 =>
                         {
                             b1.Property<string>("ApplicationUserId")
                                 .HasColumnType("nvarchar(450)");
@@ -355,7 +357,7 @@ namespace Infrastructure.Persistence.Migrations
 
                             b1.HasKey("ApplicationUserId");
 
-                            b1.ToTable("AspNetUsers", (string)null);
+                            b1.ToTable("AspNetUsers");
 
                             b1.WithOwner()
                                 .HasForeignKey("ApplicationUserId");

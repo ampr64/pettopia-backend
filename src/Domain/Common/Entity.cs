@@ -1,11 +1,28 @@
-﻿namespace Domain.Common
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Domain.Common
 {
-    public abstract class Entity<TId> : IEquatable<Entity<TId>>
+    public abstract class Entity<TId> : IHasDomainEvents, IEquatable<Entity<TId>>
         where TId : notnull, IEquatable<TId>
     {
         private int? _hashCode;
 
         public TId Id { get; protected set; } = default!;
+
+        private readonly List<DomainEvent> _domainEvents = new();
+        
+        [NotMapped]
+        public IReadOnlyList<DomainEvent> DomainEvents => _domainEvents.AsReadOnly();
+
+        protected void AddDomainEvent(DomainEvent domainEvent)
+        {
+            _domainEvents.Add(domainEvent);
+        }
+
+        public void ClearDomainEvents()
+        {
+            _domainEvents.Clear();
+        }
 
         protected bool IsTransient => Id?.Equals(default) ?? true;
 

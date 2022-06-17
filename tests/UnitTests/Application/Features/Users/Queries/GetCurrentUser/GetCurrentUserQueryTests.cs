@@ -1,12 +1,7 @@
 ﻿using Application.Common.Interfaces;
 using Application.Common.Models;
 using Application.Features.Users.Queries.GetCurrentUser;
-using AutoFixture.Xunit2;
-using FluentAssertions;
-using Moq;
 using System.Security.Claims;
-using UnitTests.Configuration;
-using Xunit;
 
 namespace UnitTests.Application.Features.Users.Queries.GetCurrentUser
 {
@@ -65,7 +60,7 @@ namespace UnitTests.Application.Features.Users.Queries.GetCurrentUser
             var userDto = await sut.Handle(query, default);
 
             userDto.Should().NotBeNull();
-            userDto.Should().BeEquivalentTo(userInfo);
+            userDto.Should().BeEquivalentTo(userInfo, cfg => cfg.ExcludingMissingMembers());
         }
     }
 }

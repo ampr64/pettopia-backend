@@ -1,10 +1,5 @@
-﻿using AutoFixture.Xunit2;
-using FluentAssertions;
-using Microsoft.AspNetCore.Http;
-using Moq;
-using UnitTests.Configuration;
+﻿using Microsoft.AspNetCore.Http;
 using WebApi.Services;
-using Xunit;
 
 namespace UnitTests.Web.Services
 {
@@ -24,6 +19,22 @@ namespace UnitTests.Web.Services
 
             principal.Should().NotThrow<NullReferenceException>();
             principal.Invoke().Should().BeNull();
+        }
+
+        [Theory, AutoMoqData]
+        public void UserId_ShouldReturnNull_WhenHttpContextIsNull([Frozen] Mock<IHttpContextAccessor> httpContextAccessorMock,
+            CurrentUserService sut)
+        {
+            httpContextAccessorMock
+                .Setup(x => x.HttpContext)
+                .Returns(value: null);
+
+            var userId = sut.Invoking(s => s.UserId);
+
+            httpContextAccessorMock.Verify(x => x.HttpContext);
+
+            userId.Should().NotThrow<NullReferenceException>();
+            userId.Invoke().Should().BeNull();
         }
     }
 }

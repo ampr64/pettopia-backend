@@ -1,0 +1,31 @@
+﻿using Application.Common.Interfaces;
+using Domain.Events;
+using MediatR;
+
+namespace Application.Features.Posts.EventHandlers
+{
+    public class PostCreatedEventHandler : INotificationHandler<PostCreatedEvent>
+    {
+        private readonly IEmailService _emailService;
+        private readonly IIdentityService _identityService;
+
+        public PostCreatedEventHandler(IEmailService emailService, IIdentityService identityService)
+        {
+            _emailService = emailService;
+            _identityService = identityService;
+        }
+
+        public async Task Handle(PostCreatedEvent notification, CancellationToken cancellationToken)
+        {
+            var user = await _identityService.GetUserInfoByIdAsync(notification.Post.CreatedBy);
+
+            var subject = "Publicación creada exitosamente";
+
+            var body = $"<b>¡Hola {user!.FirstName}!</b>"
+                + "<br>Te queríamos informar que tu publicación para <b>{notification.Post.PetName}</b> fue creada exitosamente.<br>"
+                + "¡Muchas gracias por usar nuestra plataforma!";
+
+            await _emailService.SendAsync(user.Email, subject, body, cancellationToken);
+        }
+    }
+}

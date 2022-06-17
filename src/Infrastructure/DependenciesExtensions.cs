@@ -1,4 +1,7 @@
 ﻿using Application.Common.Interfaces;
+using Application.Common.Settings;
+using Azure.Storage.Blobs;
+using Infrastructure.Extensions;
 using Infrastructure.Identity;
 using Infrastructure.Mail;
 using Infrastructure.Persistence;
@@ -50,6 +53,14 @@ namespace Infrastructure
                         ValidateLifetime = true
                     };
                 });
+
+            var blobSettings = services.ConfigureSettings<BlobSettings>(configuration, BlobSettings.Section);
+            services.ConfigureSettings<SmtpSettings>(configuration, SmtpSettings.Section);
+
+            services.AddSingleton(_ => new BlobServiceClient(blobSettings.ConnectionString));
+            services.AddSingleton<IBlobService, AzureBlobService>();
+
+            services.AddScoped<IApplicationDbContext, PettopiaDbContext>();
 
             services.AddTransient<IIdentityService, IdentityService>();
             services.AddTransient<ITokenClaimsService, IdentityTokenClaimsService>();

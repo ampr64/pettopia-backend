@@ -16,6 +16,16 @@ namespace WebApi
 
             services.AddEndpointsApiExplorer();
 
+            services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(config =>
+                {
+                    config.AllowAnyOrigin()
+                    .AllowAnyHeader()
+                    .AllowAnyMethod();
+                });
+            });
+
             services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
 
             services.ConfigureSwagger();
