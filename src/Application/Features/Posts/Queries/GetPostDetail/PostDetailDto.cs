@@ -1,6 +1,4 @@
-﻿using Application.Common.Models;
-
-namespace Application.Features.Posts.Queries.GetPostDetail
+﻿namespace Application.Features.Posts.Queries.GetPostDetail
 {
     public record PostDetailDto
     {

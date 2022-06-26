@@ -1,6 +1,8 @@
-﻿using Application.Features.Posts.Commands.CreatePost;
+﻿using Application.Features.Posts.Commands.CompletePost;
+using Application.Features.Posts.Commands.CreatePost;
 using Application.Features.Posts.Commands.DeletePost;
 using Application.Features.Posts.Commands.UpdatePost;
+using Application.Features.Posts.Queries.GetMyPosts;
 using Application.Features.Posts.Queries.GetPostDetail;
 using Application.Features.Posts.Queries.GetPosts;
 using Microsoft.AspNetCore.Authorization;
@@ -11,10 +13,19 @@ namespace WebApi.Controllers
 {
     public class PostsController : ApiControllerBase
     {
+        [HttpGet("me")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [Produces(MediaTypeNames.Application.Json)]
+        public async Task<ActionResult<IReadOnlyList<PostBriefDto>>> MyPosts()
+        {
+            return Ok(await Mediator.Send(new GetMyPostsQuery()));
+        }
+
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [Produces(MediaTypeNames.Application.Json)]
-        public async Task<ActionResult<List<PostPreviewDto>>> List([FromQuery] GetPostsQuery query)
+        public async Task<ActionResult<IReadOnlyList<PostPreviewDto>>> List([FromQuery] GetPostsQuery query)
         {
             return Ok(await Mediator.Send(query));
         }
@@ -43,10 +54,28 @@ namespace WebApi.Controllers
         [HttpPut("{id:guid}")]
         [Authorize]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [Produces(MediaTypeNames.Application.Json)]
         public async Task<ActionResult> Update(Guid id, [FromForm] UpdatePostCommand command)
+        {
+            if (id != command.Id)
+            {
+                return BadRequest();
+            }
+
+            await Mediator.Send(command);
+
+            return NoContent();
+        }
+
+        [HttpPut("{id:guid}/status")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [Produces(MediaTypeNames.Application.Json)]
+        public async Task<ActionResult> Complete(Guid id, CompletePostCommand command)
         {
             if (id != command.Id)
             {
@@ -61,8 +90,8 @@ namespace WebApi.Controllers
         [HttpDelete("{id:guid}")]
         [Authorize]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [Produces(MediaTypeNames.Application.Json)]
         public async Task<ActionResult> Delete(Guid id)

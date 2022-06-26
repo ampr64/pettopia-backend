@@ -1,6 +1,6 @@
 ﻿using Application.Common.Interfaces;
 using Domain.Common;
-using Domain.Entities;
+using Domain.Entities.Posts;
 using Infrastructure.Identity;
 using MediatR;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -21,6 +21,8 @@ namespace Infrastructure.Persistence
         {
             _mediator = mediator;
         }
+
+        public DbSet<PostApplication> Applications => Set<PostApplication>();
 
         public DbSet<Post> Posts => Set<Post>();
 

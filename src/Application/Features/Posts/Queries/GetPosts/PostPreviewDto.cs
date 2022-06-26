@@ -1,6 +1,4 @@
-﻿using Application.Common.Models;
-
-namespace Application.Features.Posts.Queries.GetPosts
+﻿namespace Application.Features.Posts.Queries.GetPosts
 {
     public record PostPreviewDto
     {
@@ -15,5 +13,7 @@ namespace Application.Features.Posts.Queries.GetPosts
         public string AuthorId { get; set; } = null!;
 
         public string AuthorName { get; set; } = null!;
+
+        public DateTime CreatedAt { get; set; }
     }
 }

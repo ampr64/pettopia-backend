@@ -11,15 +11,18 @@ namespace Infrastructure.Identity
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly ITokenClaimsService _tokenClaimsService;
+        private readonly ICurrentUserService _currentUserService;
         private readonly IDateTimeService _dateTimeService;
 
         public IdentityService(UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
             ITokenClaimsService tokenClaimsService,
+            ICurrentUserService currentUserService,
             IDateTimeService dateTimeService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _currentUserService = currentUserService;
             _tokenClaimsService = tokenClaimsService;
             _dateTimeService = dateTimeService;
         }
@@ -143,6 +146,16 @@ namespace Infrastructure.Identity
         private async Task<string> GetUserRoleAsync(ApplicationUser user)
         {
             return (await _userManager.GetRolesAsync(user)).Single();
+        }
+
+        public async Task<UserInfo?> GetCurrentUserAsync(CancellationToken cancellationToken = default)
+        {
+            if (_currentUserService.UserId is null)
+            {
+                return null;
+            }
+
+            return await GetUserInfoByIdAsync(_currentUserService.UserId);
         }
     }
 }

@@ -7,6 +7,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <None Include="..\..\.editorconfig" Link=".editorconfig" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="Ardalis.SmartEnum.EFCore" Version="2.1.0" />
 		<PackageReference Include="Azure.Storage.Blobs" Version="12.12.0" />
 		<PackageReference Include="MailKit" Version="3.2.0" />

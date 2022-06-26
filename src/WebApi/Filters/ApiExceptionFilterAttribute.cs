@@ -1,4 +1,5 @@
 ﻿using Application.Common.Exceptions;
+using Domain.Common;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
@@ -10,6 +11,7 @@ namespace WebApi.Filters
         {
             Action<ExceptionContext> handler = context.Exception switch
             {
+                DomainException ex => HandleDomainException,
                 AuthenticationFailedException ex => HandleAuthenticationFailedException,
                 UnauthorizedAccessException ex => HandleUnauthorizedAccessException,
                 ForbiddenAccessException ex => HandleForbiddenAccessException,
@@ -80,6 +82,19 @@ namespace WebApi.Filters
             };
         }
 
+        private static void HandleDomainException(ExceptionContext context)
+        {
+            var details = new ProblemDetails
+            {
+                Detail = context.Exception.Message,
+                Status = StatusCodes.Status409Conflict,
+                Title = "Business rule violation.",
+                Type = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.8"
+            };
+
+            context.Result = new ObjectResult(details);
+        }
+
         private static void HandleUnprocessableEntityException(ExceptionContext context)
         {
             var details = new
@@ -98,6 +113,7 @@ namespace WebApi.Filters
         {
             var details = new ProblemDetails
             {
+                Detail = context.Exception.Message,
                 Status = StatusCodes.Status500InternalServerError,
                 Title = "An error occurred while processing your request.",
                 Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1"

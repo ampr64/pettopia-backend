@@ -1,6 +1,4 @@
-﻿using Application.Common.Interfaces;
-using Application.Common.Settings;
-using Domain.Entities;
+﻿using Domain.Entities.Posts;
 using Domain.Enumerations;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -39,7 +37,8 @@ namespace Application.Features.Posts.Queries.GetPosts
         {
             var query = _dbContext.Posts
                 .AsNoTracking()
-                .Where(p => p.PostStatus == PostStatus.Open);
+                .OrderByDescending(p => p.CreatedAt)
+                .Where(p => p.Status == PostStatus.Open);
 
             query = FilterByPetSpecies(query, request.PetSpecies);
             query = FilterByGender(query, request.PetGender);
@@ -47,23 +46,20 @@ namespace Application.Features.Posts.Queries.GetPosts
             query = FilterByPostType(query, request.PostType);
             query = FilterByNeuterStatus(query, request.NeuterStatus);
 
-            var getPosts = query
-                .AsEnumerable()
-                .Select(async p =>
-                {
-                    var blob = await _blobService.GetBlobAsync(_blobSettings.Container, p.Images.OrderBy(i => i.Order).Select(i => i.Blob).First());
-                    return new PostPreviewDto
-                    {
-                        Id = p.Id,
-                        AuthorId = p.CreatedBy,
-                        AuthorName = (await _identityService.GetUserInfoByIdAsync(p.CreatedBy))!.FirstName,
-                        PetGender = p.PetGender,
-                        PetName = p.PetName,
-                        Thumbnail = blob,
-                    };
-                });
+            var posts = await query.ToListAsync(cancellationToken);
 
-            return await Task.WhenAll(getPosts);
+            var projectPostsTasks = posts.Select(async p => new PostPreviewDto
+            {
+                Id = p.Id,
+                AuthorId = p.CreatedBy,
+                AuthorName = _identityService.GetUserInfoByIdAsync(p.CreatedBy)!.Result!.FirstName, // Sync hotfix, otherwise throws concurrency exception -- TODO: Add domain user so we can query DB side
+                PetGender = p.PetGender,
+                PetName = p.PetName,
+                CreatedAt = p.CreatedAt,
+                Thumbnail = await _blobService.GetBlobAsync(_blobSettings.Container, p.Images.OrderBy(i => i.Order).Select(i => i.Blob).First())
+            });
+
+            return await Task.WhenAll(projectPostsTasks);
         }
 
         private static IQueryable<Post> FilterByPetSpecies(IQueryable<Post> query, int? petSpecies)
@@ -90,7 +86,7 @@ namespace Application.Features.Posts.Queries.GetPosts
         private static IQueryable<Post> FilterByPostType(IQueryable<Post> query, List<int> postTypeFilters)
         {
             return postTypeFilters is { Count: > 0 }
-                ? query.Where(p => postTypeFilters.Contains(p.PostType))
+                ? query.Where(p => postTypeFilters.Contains(p.Type))
                 : query;
         }
 

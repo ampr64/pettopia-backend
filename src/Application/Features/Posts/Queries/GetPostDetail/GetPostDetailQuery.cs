@@ -1,8 +1,4 @@
-﻿using Application.Common.Exceptions;
-using Application.Common.Interfaces;
-using Application.Common.Models;
-using Application.Common.Settings;
-using Domain.Enumerations;
+﻿using Domain.Enumerations;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -29,7 +25,7 @@ namespace Application.Features.Posts.Queries.GetPostDetail
         {
             var post = await _dbContext.Posts
                 .AsNoTracking()
-                .FirstOrDefaultAsync(p => p.Id == request.Id && p.PostStatus == PostStatus.Open, cancellationToken)
+                .FirstOrDefaultAsync(p => p.Id == request.Id && p.Status == PostStatus.Open, cancellationToken)
                 ?? throw new NotFoundException();
 
             var user = await _identityService.GetUserInfoByIdAsync(post.CreatedBy);
@@ -52,7 +48,7 @@ namespace Application.Features.Posts.Queries.GetPostDetail
                 PetSpecies = post.PetSpecies,
                 PetGender = post.PetGender,
                 PetName = post.PetName,
-                PostType = post.PostType,
+                PostType = post.Type,
                 Images = blobs,
             };
         }

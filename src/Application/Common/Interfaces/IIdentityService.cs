@@ -88,5 +88,11 @@ namespace Application.Common.Interfaces
         /// <param name="birthDate">The date of birth.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation, containing the <see cref="Result{string}"/> of the operation.</returns>
         Task<Result<string?>> CreateBackOfficeUserAsync(string email, string password, string firstName, string lastName, DateTime birthDate);
+
+        /// <summary>
+        /// Gets the user info of the authenticated user.
+        /// </summary>
+        /// <returns>The <see cref="Task"/> that represents the asynchronous operation, containing the <see cref="UserInfo"/> if authenticated, else null.</returns>
+        Task<UserInfo?> GetCurrentUserAsync(CancellationToken cancellationToken = default);
     }
 }

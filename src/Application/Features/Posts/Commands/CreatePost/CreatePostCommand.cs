@@ -1,6 +1,4 @@
-﻿using Application.Common.Interfaces;
-using Application.Common.Settings;
-using Domain.Entities;
+﻿using Domain.Entities.Posts;
 using Domain.Enumerations;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -61,7 +59,7 @@ namespace Application.Features.Posts.Commands.CreatePost
 
             var blobs = await UploadBlobsAsync(request.Images, post, cancellationToken);
 
-            post.Images = GetPostImages(post, blobs);
+            post.SetImages(GetPostImages(post, blobs), _dateTimeService.Now);
 
             await _dbContext.Posts.AddAsync(post, cancellationToken);
             await _dbContext.SaveChangesAsync(cancellationToken);
@@ -71,12 +69,8 @@ namespace Application.Features.Posts.Commands.CreatePost
 
         private static List<PostImage> GetPostImages(Post post, IEnumerable<string> blobs)
         {
-            return blobs.Select((blob, index) => new PostImage
-            {
-                PostId = post.Id,
-                Order = index + 1,
-                Blob = blob
-            }).ToList();
+            return blobs.Select((blob, index) => new PostImage(post.Id, blob, index + 1))
+                .ToList();
         }
 
         private async Task<string[]> UploadBlobsAsync(IFormFileCollection images, Post post, CancellationToken cancellationToken)

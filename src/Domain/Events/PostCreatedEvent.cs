@@ -1,4 +1,6 @@
-﻿namespace Domain.Events
+﻿using Domain.Entities.Posts;
+
+namespace Domain.Events
 {
     public sealed class PostCreatedEvent : DomainEvent
     {

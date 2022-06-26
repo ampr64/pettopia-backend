@@ -1,7 +1,4 @@
-﻿using Application.Common.Exceptions;
-using Application.Common.Interfaces;
-using Application.Common.Settings;
-using Domain.Entities;
+﻿using Domain.Entities.Posts;
 using Domain.Enumerations;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -33,12 +30,14 @@ namespace Application.Features.Posts.Commands.UpdatePost
     public class UpdatePostCommandHandler : IRequestHandler<UpdatePostCommand, Unit>
     {
         private readonly IApplicationDbContext _dbContext;
+        private readonly IDateTimeService _dateTimeService;
         private readonly IBlobService _blobService;
         private readonly BlobSettings _blobSettings;
 
-        public UpdatePostCommandHandler(IApplicationDbContext dbContext, IBlobService blobService, BlobSettings blobSettings)
+        public UpdatePostCommandHandler(IApplicationDbContext dbContext, IDateTimeService dateTimeService, IBlobService blobService, BlobSettings blobSettings)
         {
             _dbContext = dbContext;
+            _dateTimeService = dateTimeService;
             _blobService = blobService;
             _blobSettings = blobSettings;
         }
@@ -46,10 +45,10 @@ namespace Application.Features.Posts.Commands.UpdatePost
         public async Task<Unit> Handle(UpdatePostCommand request, CancellationToken cancellationToken)
         {
             var post = await _dbContext.Posts
-                .FirstOrDefaultAsync(p => p.Id == request.Id && p.PostStatus == PostStatus.Open, cancellationToken)
+                .FirstOrDefaultAsync(p => p.Id == request.Id && p.Status == PostStatus.Open, cancellationToken)
                 ?? throw new NotFoundException();
 
-            post.PostType = (PostType)request.PostType;
+            post.Type = (PostType)request.PostType;
             post.PetName = request.PetName;
             post.PetGender = (PetGender)request.PetGender;
             post.NeuterStatus = (NeuterStatus)request.NeuterStatus;
@@ -59,7 +58,7 @@ namespace Application.Features.Posts.Commands.UpdatePost
             await DeletePostImagesBlobsAsync(post, cancellationToken);
             var blobs = await UploadBlobsAsync(request.Images, post, cancellationToken);
 
-            post.Images = GetPostImages(post, blobs);
+            post.SetImages(GetPostImages(post, blobs), _dateTimeService.Now);
 
             await _dbContext.SaveChangesAsync(cancellationToken);
             return Unit.Value;
@@ -86,12 +85,7 @@ namespace Application.Features.Posts.Commands.UpdatePost
 
         private static List<PostImage> GetPostImages(Post post, IEnumerable<string> blobs)
         {
-            return blobs.Select((blob, index) => new PostImage
-            {
-                PostId = post.Id,
-                Order = index + 1,
-                Blob = blob
-            }).ToList();
+            return blobs.Select((blob, index) => new PostImage(post.Id, blob, index + 1)).ToList();
         }
     }
 }
