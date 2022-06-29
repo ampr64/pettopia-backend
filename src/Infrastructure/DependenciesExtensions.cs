@@ -4,6 +4,7 @@ using Azure.Storage.Blobs;
 using Infrastructure.Extensions;
 using Infrastructure.Identity;
 using Infrastructure.Mail;
+using Infrastructure.Mail.Templates;
 using Infrastructure.Persistence;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -67,6 +68,7 @@ namespace Infrastructure
             services.AddTransient<IDateTimeService, UtcDateTimeService>();
             services.AddTransient<JwtSecurityTokenHandler>();
             services.AddTransient<IEmailService, SmtpEmailService>();
+            services.AddTransient<IEmailTemplateService, EmailTemplateService>();
 
             return services;
         }
