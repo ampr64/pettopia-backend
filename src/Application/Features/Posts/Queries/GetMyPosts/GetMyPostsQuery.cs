@@ -43,6 +43,7 @@ namespace Application.Features.Posts.Queries.GetMyPosts
                         .Select(i => i.Blob)
                         .First(),
                     Applications = p.Applications
+                        .Where(a => a.Status == ApplicationStatus.Pending)
                         .OrderByDescending(a => a.SubmittedAt)
                         .Select(a => new ApplicationBriefDto
                         {

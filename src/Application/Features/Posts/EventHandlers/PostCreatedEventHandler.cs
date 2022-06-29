@@ -1,35 +1,37 @@
-﻿using Application.Common.Interfaces;
-using Domain.Events;
+﻿using Domain.Events;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Features.Posts.EventHandlers
 {
     public class PostCreatedEventHandler : INotificationHandler<PostCreatedEvent>
     {
+        private readonly IApplicationDbContext _dbContext;
         private readonly IEmailService _emailService;
-        private readonly IIdentityService _identityService;
         private readonly IEmailTemplateService _emailTemplateService;
+        private readonly IUriComposer _uriComposer;
 
-        public PostCreatedEventHandler(IEmailService emailService, IIdentityService identityService, IEmailTemplateService emailTemplateService)
+        public PostCreatedEventHandler(IApplicationDbContext dbContext, IEmailService emailService, IEmailTemplateService emailTemplateService, IUriComposer uriComposer)
         {
+            _dbContext = dbContext;
             _emailService = emailService;
-            _identityService = identityService;
             _emailTemplateService = emailTemplateService;
+            _uriComposer = uriComposer;
         }
 
         public async Task Handle(PostCreatedEvent notification, CancellationToken cancellationToken)
         {
-            var user = await _identityService.GetUserInfoByIdAsync(notification.Post.CreatedBy);
+            var author = await _dbContext.Members
+                .AsNoTracking()
+                .FirstOrDefaultAsync(m => m.Id == notification.Post.CreatedBy, cancellationToken);
 
-            string postId = notification.Post.Id.ToString();
-
-            string postUrl = "https://localhost:4200" + postId;
+            var postUrl = _uriComposer.GetPostDetailUrl(notification.Post.Id);
             
-            string subject = "Publicación creada exitosamente";
+            var subject = "Publicación creada exitosamente";
                                                       
-            string body = _emailTemplateService.BuildPostCreatedTemplate(user!.FirstName, notification.Post.PetName, postUrl);
+            var body = _emailTemplateService.BuildPostCreatedTemplate(author!.FirstName, notification.Post.PetName, postUrl);
                                   
-            await _emailService.SendAsync(user.Email, subject, body, cancellationToken);
+            await _emailService.SendAsync(author.Email, subject, body, cancellationToken);
         }
     }
 }

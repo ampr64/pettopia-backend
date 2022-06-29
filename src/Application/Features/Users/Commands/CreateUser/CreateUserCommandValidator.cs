@@ -1,5 +1,4 @@
-﻿using Application.Common.Interfaces;
-using Domain.Enumerations;
+﻿using Domain.Enumerations;
 using FluentValidation;
 
 namespace Application.Features.Users.Commands.CreateUser
@@ -28,6 +27,11 @@ namespace Application.Features.Users.Commands.CreateUser
 
             RuleFor(c => c.BirthDate)
                 .LessThan(dateTimeService.Now);
+
+            RuleFor(c => c.FostererName)
+                .NotEmpty()
+                .When(c => c.Role.Equals(Role.Fosterer.Name))
+                .MaximumLength(50);
 
             RuleFor(c => c.Role)
                 .NotEmpty()

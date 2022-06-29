@@ -1,4 +1,5 @@
 ﻿using Application.Common.Interfaces;
+using Domain.Enumerations;
 using Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using UnitTests.Configuration.Identity;
@@ -7,27 +8,12 @@ namespace UnitTests.Infrastructure.Identity
 {
     public class IdentityServiceTests
     {
-        [Theory, IdentityAutoData]
-        public async Task Authenticate_ShouldReturnNull_IfUserDoesNotExist([Frozen] Mock<UserManager<ApplicationUser>> userManagerMock,
-            IdentityService sut,
-            string email)
-        {
-            userManagerMock
-                .Setup(u => u.FindByEmailAsync(email))!
-                .ReturnsAsync(value: null);
-
-            var actual = await sut.GetUserInfoAsync(email);
-
-            userManagerMock.Verify(u => u.FindByEmailAsync(email));
-            actual.Should().BeNull();
-        }
-
         [Theory(Skip = "Freeze failing."), IdentityAutoData]
-        public async Task Authenticate_ShouldReturnToken_IfCredentialsMatch([Frozen] Mock<SignInManager<ApplicationUser>> signInManagerMock,
+        public async Task Authenticate_ShouldReturnToken_IfCredentialsMatch([Frozen] Mock<SignInManager<CustomIdentityUser>> signInManagerMock,
             [Frozen] Mock<ITokenClaimsService> tokenClaimsServiceMock,
-            Mock<UserManager<ApplicationUser>> userManagerStub,
+            Mock<UserManager<CustomIdentityUser>> userManagerStub,
             IdentityService sut,
-            ApplicationUser user,
+            CustomIdentityUser user,
             string token,
             string email,
             string password)
@@ -52,10 +38,10 @@ namespace UnitTests.Infrastructure.Identity
         }
 
         [Theory, IdentityAutoData]
-        public async Task Authenticate_ShouldReturnNull_IfCredentialsAreInvalid([Frozen] Mock<SignInManager<ApplicationUser>> signInManagerMock,
-            Mock<UserManager<ApplicationUser>> userManagerStub,
+        public async Task Authenticate_ShouldReturnNull_IfCredentialsAreInvalid([Frozen] Mock<SignInManager<CustomIdentityUser>> signInManagerMock,
+            Mock<UserManager<CustomIdentityUser>> userManagerStub,
             IdentityService sut,
-            ApplicationUser user,
+            CustomIdentityUser user,
             string email,
             string password)
         {
@@ -73,10 +59,10 @@ namespace UnitTests.Infrastructure.Identity
         }
 
         [Theory(Skip = "UserManager mock failing."), IdentityAutoData]
-        public async Task CreateUser_ShouldReturnSuccessWithUserId_WhenCreatedSuccessfully([Frozen] Mock<UserManager<ApplicationUser>> userManagerMock,
+        public async Task CreateUser_ShouldReturnSuccessWithUserId_WhenCreatedSuccessfully([Frozen] Mock<UserManager<CustomIdentityUser>> userManagerMock,
             IdentityService sut,
-            ApplicationUser user,
-            string role,
+            CustomIdentityUser user,
+            Role role,
             string password)
         {
             userManagerMock
@@ -84,48 +70,13 @@ namespace UnitTests.Infrastructure.Identity
                 .ReturnsAsync(IdentityResult.Success);
 
             userManagerMock
-                .Setup(u => u.AddToRoleAsync(user, role))
+                .Setup(u => u.AddToRoleAsync(user, role.Name))
                 .ReturnsAsync(IdentityResult.Success);
 
-            var actual = await sut.CreateUserAsync(user.Email, password, user.FirstName, user.LastName, user.BirthDate, role);
+            var actual = await sut.CreateUserAsync(user.Email, password, role);
 
             actual.Succeeded.Should().BeTrue();
             actual.Data.Should().NotBeNull();
-        }
-
-        [Theory, IdentityAutoData]
-        public async Task GetUserInfo_ShouldReturnNull_IfUserDoesNotExist([Frozen] Mock<UserManager<ApplicationUser>> userManagerMock,
-            IdentityService sut,
-            string email)
-        {
-            userManagerMock
-                .Setup(u => u.FindByEmailAsync(email))!
-                .ReturnsAsync(value: null);
-
-            var actual = await sut.GetUserInfoAsync(email);
-
-            userManagerMock.Verify(u => u.FindByEmailAsync(email));
-            actual.Should().BeNull();
-        }
-
-        [Theory, IdentityAutoData]
-        public async Task GetUserInfo_ShouldThrowInvalidOperationException_IfUserHasMultipleRoles(Mock<UserManager<ApplicationUser>> userManagerStub,
-            IdentityService sut,
-            ApplicationUser user,
-            IList<string> roles,
-            string email)
-        {
-            userManagerStub
-                .Setup(u => u.FindByEmailAsync(email))
-                .ReturnsAsync(user);
-
-            userManagerStub
-                .Setup(u => u.GetRolesAsync(user))
-                .ReturnsAsync(roles);
-
-            var getUserInfo = sut.Invoking(s => s.GetUserInfoAsync(email));
-
-            await getUserInfo.Should().ThrowAsync<InvalidOperationException>();
         }
     }
 }

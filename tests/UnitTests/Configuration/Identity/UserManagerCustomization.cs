@@ -10,8 +10,8 @@ namespace UnitTests.Configuration.Identity
     {
         public void Customize(IFixture fixture)
         {
-            fixture.FreezeMoq(() => new Mock<UserManager<ApplicationUser>>(
-                Mock.Of<IUserEmailStore<ApplicationUser>>(), null, null, null, null, null, null, null, null));
+            fixture.FreezeMoq(() => new Mock<UserManager<CustomIdentityUser>>(
+                Mock.Of<IUserEmailStore<CustomIdentityUser>>(), null, null, null, null, null, null, null, null));
         }
     }
 }

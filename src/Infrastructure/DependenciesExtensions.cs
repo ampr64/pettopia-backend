@@ -2,11 +2,8 @@
 using Application.Common.Settings;
 using Azure.Storage.Blobs;
 using Infrastructure.Extensions;
-using Infrastructure.Identity;
 using Infrastructure.Mail;
 using Infrastructure.Mail.Templates;
-using Infrastructure.Persistence;
-using Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -29,11 +26,15 @@ namespace Infrastructure
                     sqlOptions => sqlOptions.MigrationsAssembly(typeof(PettopiaDbContext).Assembly.FullName));
             });
 
-            services.AddIdentityCore<ApplicationUser>(options => options.User.RequireUniqueEmail = true)
-                .AddRoles<IdentityRole>()
-                .AddEntityFrameworkStores<PettopiaDbContext>()
-                .AddDefaultTokenProviders()
-                .AddSignInManager();
+            services.AddIdentityCore<CustomIdentityUser>(options =>
+            {
+                options.User.RequireUniqueEmail = true;
+                //options.SignIn.RequireConfirmedEmail = true;
+            })
+              .AddRoles<IdentityRole>()
+              .AddEntityFrameworkStores<PettopiaDbContext>()
+              .AddDefaultTokenProviders()
+              .AddSignInManager();
 
             services
                 .AddAuthentication(authOpts => authOpts.DefaultScheme = JwtBearerDefaults.AuthenticationScheme)
@@ -57,9 +58,11 @@ namespace Infrastructure
 
             var blobSettings = services.ConfigureSettings<BlobSettings>(configuration, BlobSettings.Section);
             services.ConfigureSettings<SmtpSettings>(configuration, SmtpSettings.Section);
+            services.ConfigureSettings<AppClientUrlsSettings>(configuration, AppClientUrlsSettings.Section);
 
             services.AddSingleton(_ => new BlobServiceClient(blobSettings.ConnectionString));
             services.AddSingleton<IBlobService, AzureBlobService>();
+            services.AddSingleton<IUriComposer, UriComposer>();
 
             services.AddScoped<IApplicationDbContext, PettopiaDbContext>();
 

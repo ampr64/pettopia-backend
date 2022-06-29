@@ -25,9 +25,9 @@ namespace Application.Features.PostApplications.Commands.SubmitPostApplication
                 .FirstOrDefaultAsync(p => p.Id == request.PostId, cancellationToken)
                 ?? throw new NotFoundException();
 
-            var user = await _identityService.GetCurrentUserAsync(cancellationToken);
+            var user = await _identityService.GetCurrentUserAsync(false, cancellationToken);
 
-            var applicationId = post.AddApplication(_dateTimeService.Now, user!.Id, user.FirstName, user.Email, user.PhoneNumber);
+            var applicationId = post.AddApplication(_dateTimeService.Now, user!.Id, user.FirstName, user.Email, user.PhoneNumber!);
 
             await _dbContext.SaveChangesAsync(cancellationToken);
 

@@ -1,25 +1,29 @@
 ﻿using Application.Common.Interfaces;
 using Application.Common.Models;
+using Domain.Entities.Users;
 using Domain.Enumerations;
 using Microsoft.AspNetCore.Identity;
-using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Identity
 {
     public class IdentityService : IIdentityService
     {
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly IApplicationDbContext _dbContext;
+        private readonly UserManager<CustomIdentityUser> _userManager;
+        private readonly SignInManager<CustomIdentityUser> _signInManager;
         private readonly ITokenClaimsService _tokenClaimsService;
         private readonly ICurrentUserService _currentUserService;
         private readonly IDateTimeService _dateTimeService;
 
-        public IdentityService(UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager,
+        public IdentityService(IApplicationDbContext dbContext,
+            UserManager<CustomIdentityUser> userManager,
+            SignInManager<CustomIdentityUser> signInManager,
             ITokenClaimsService tokenClaimsService,
             ICurrentUserService currentUserService,
             IDateTimeService dateTimeService)
         {
+            _dbContext = dbContext;
             _userManager = userManager;
             _signInManager = signInManager;
             _currentUserService = currentUserService;
@@ -40,74 +44,61 @@ namespace Infrastructure.Identity
             return result.Succeeded ? (await _tokenClaimsService.GetTokenAsync(email)) : null;
         }
 
-        public async Task<Result<string?>> CreateUserAsync(string email, string password, string firstName, string lastName, DateTime birthDate, string role)
+        public async Task<Result<string?>> CreateUserAsync(string email, string password, Role role, CancellationToken cancellationToken = default)
         {
-            var applicationUser = new ApplicationUser(email, firstName, lastName, birthDate, _dateTimeService);
+            // TODO: Send confirmation email
+            var user = new CustomIdentityUser(email);
 
-            var result = await _userManager.CreateAsync(applicationUser, password);
+            var result = await _userManager.CreateAsync(user, password);
+
             if (result.Succeeded)
             {
-                result = await _userManager.AddToRoleAsync(applicationUser, role);
+                result = await _userManager.AddToRoleAsync(user, role.Name);
             }
 
-            return result.ToResultObject(applicationUser.Id);
-        }
-
-        public async Task<UserInfo?> GetUserInfoAsync(ClaimsPrincipal principal)
-        {
-            _ = principal ?? throw new ArgumentNullException(nameof(principal));
-            var user = await _userManager.GetUserAsync(principal);
-            if (user is null)
-            {
-                return null;
-            }
-
-            var role = await GetUserRoleAsync(user);
-            return user.ToUserInfo(role);
-        }
-
-        public async Task<UserInfo?> GetUserInfoAsync(string email)
-        {
-            var user = await _userManager.FindByEmailAsync(email);
-            if (user == null)
-            {
-                return null;
-            }
-
-            var role = (await _userManager.GetRolesAsync(user)).Single();
-            return user.ToUserInfo(role);
-        }
-
-        public async Task<IReadOnlyList<UserInfo?>> GetUsersByRoleAsync(string role)
-        {
-            var users = await _userManager.GetUsersInRoleAsync(role);
-            if (users is null)
-            {
-                var emptyList = new List<UserInfo>();
-                return emptyList;
-            }
-           
-            var result = IdentityExtensions.ToUserInfo(users, role);
-            return result;
+            return result.ToResultObject(user.Id);
         }
 
         public async Task<bool> DeleteUserAsync(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
-            var result = await _userManager.DeleteAsync(user);
+
+            if (user is null)
+            {
+                return true;
+            }
             
+            var result = await _userManager.SetLockoutEnabledAsync(user, true);
+            
+            if (result.Succeeded)
+            {
+                result = await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.MaxValue);
+            }
+
             return result.Succeeded;
         }
 
-        public async Task<bool> UpdateUserAsync(string userId, string email, string firstName, string lastName, DateTime birthDate)
+        public async Task<bool> ChangeEmailAsync(string userId, string email)
         {
+            // TODO: Send token for email confirmation
             var user = await _userManager.FindByIdAsync(userId);
+            if (user is null)
+            {
+                return false;
+            }
+
             user.Email = email;
-            user.FirstName = firstName;
-            user.LastName = lastName;
-            user.BirthDate = birthDate;
+
             var result = await _userManager.UpdateAsync(user);
-            
+
+            return result.Succeeded;
+        }
+
+        public async Task<bool> ConfirmEmailAsync(string email, string token)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            var result = await _userManager.ConfirmEmailAsync(user, token);
+
             return result.Succeeded;
         }
 
@@ -118,34 +109,42 @@ namespace Infrastructure.Identity
             {
                 return null;
             }
-            var result = IdentityExtensions.ToUserInfo(user);
-            return result;
+
+            return new UserInfo();
         }
 
-        public async Task<bool> ValidateUserRoleAsync(string userId, string role)
+        public async Task<bool> IsElevatedAccessUser(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
-            bool isInRole = await _userManager.IsInRoleAsync(user, role);
+            var role = await GetUserRoleAsync(user);
+            var elevatedRoles = new[] { Role.Admin.Name, Role.BackOfficeUser.Name };
 
-            return isInRole;
+            return elevatedRoles.Contains(role);
         }
 
-        public async Task<Result<string?>> CreateBackOfficeUserAsync(string email, string password, string firstName, string lastName, DateTime birthDate)
-        {
-            var applicationUser = new ApplicationUser(email, firstName, lastName, birthDate, _dateTimeService);
-
-            var result = await _userManager.CreateAsync(applicationUser, password);
-            if (result.Succeeded)
-            {
-                result = await _userManager.AddToRoleAsync(applicationUser, Role.BackOfficeUser.Name);
-            }
-
-            return result.ToResultObject(applicationUser.Id);
-        }
-
-        private async Task<string> GetUserRoleAsync(ApplicationUser user)
+        private async Task<string> GetUserRoleAsync(CustomIdentityUser user)
         {
             return (await _userManager.GetRolesAsync(user)).Single();
+        }
+
+        public async Task<Member?> GetCurrentUserAsync(bool trackChanges = false, CancellationToken cancellationToken = default)
+        {
+            if (_currentUserService.UserId is null)
+            {
+                return null;
+            }
+
+            var query = (trackChanges ? _dbContext.Members : _dbContext.Members.AsNoTracking());
+
+            return await query.IgnoreQueryFilters()
+                .FirstOrDefaultAsync(m => m.Id == _currentUserService.UserId, cancellationToken);
+        }
+
+        public async Task<string?> GetEmailConfirmationToken(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+
+            return user is null ? null : await _userManager.GenerateEmailConfirmationTokenAsync(user);
         }
 
         public async Task<UserInfo?> GetCurrentUserAsync(CancellationToken cancellationToken = default)

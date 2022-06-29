@@ -1,4 +1,5 @@
-﻿using Domain.Enumerations;
+﻿using Domain.Entities.Users;
+using Domain.Enumerations;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,14 +10,12 @@ namespace Application.Features.Posts.Queries.GetPostDetail
     public class GetPostDetailQueryHandler : IRequestHandler<GetPostDetailQuery, PostDetailDto>
     {
         private readonly IApplicationDbContext _dbContext;
-        private readonly IIdentityService _identityService;
         private readonly IBlobService _blobStorageService;
         private readonly BlobSettings _blobSettings;
 
-        public GetPostDetailQueryHandler(IApplicationDbContext dbContext, IIdentityService identityService, IBlobService blobStorageService, BlobSettings blobSettings)
+        public GetPostDetailQueryHandler(IApplicationDbContext dbContext, IBlobService blobStorageService, BlobSettings blobSettings)
         {
             _dbContext = dbContext;
-            _identityService = identityService;
             _blobStorageService = blobStorageService;
             _blobSettings = blobSettings;
         }
@@ -28,7 +27,8 @@ namespace Application.Features.Posts.Queries.GetPostDetail
                 .FirstOrDefaultAsync(p => p.Id == request.Id && p.Status == PostStatus.Open, cancellationToken)
                 ?? throw new NotFoundException();
 
-            var user = await _identityService.GetUserInfoByIdAsync(post.CreatedBy);
+            var author = await _dbContext.Members.FirstOrDefaultAsync(m => m.Id == post.CreatedBy, cancellationToken);
+            var fosterer = author as Fosterer;
             
             var blobs = new List<BlobData>();
             foreach (var image in post.Images)
@@ -41,7 +41,7 @@ namespace Application.Features.Posts.Queries.GetPostDetail
             {
                 Id = post.Id,
                 AuthorId = post.CreatedBy,
-                AuthorName = user!.FirstName,
+                AuthorName = fosterer?.OrganizationName ?? author!.FirstName,
                 Description = post.Description,
                 NeuterStatus = post.NeuterStatus,
                 PetAge = post.PetAge,

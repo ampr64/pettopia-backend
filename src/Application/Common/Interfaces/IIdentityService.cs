@@ -1,5 +1,5 @@
-﻿using Application.Common.Models;
-using System.Security.Claims;
+﻿using Domain.Entities.Users;
+using Domain.Enumerations;
 
 namespace Application.Common.Interfaces
 {
@@ -16,34 +16,12 @@ namespace Application.Common.Interfaces
         /// <summary>
         /// Creates a new user with the specified role.
         /// </summary>
-        /// <param name="email">The email address.</param>
+        /// <param name="role">The role.</param>
+        /// <param name="email">The email.</param>
         /// <param name="password">The password.</param>
-        /// <param name="firstName">The first name.</param>
-        /// <param name="lastName">The last name.</param>
-        /// <param name="birthDate">The date of birth.</param>
+        /// <param name="cancellationToken">A CancellationToken to observe while waiting for the task to complete.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation, containing the <see cref="Result{string}"/> of the operation.</returns>
-        Task<Result<string?>> CreateUserAsync(string email, string password, string firstName, string lastName, DateTime birthDate, string role);
-
-        /// <summary>
-        /// Gets the user info.
-        /// </summary>
-        /// <param name="email">The email.</param>
-        /// <returns>The <see cref="Task"/> that represents the asynchronous operation, containing the <see cref="UserInfo"/> if it exists, else null.</returns>
-        Task<UserInfo?> GetUserInfoAsync(string email);
-
-        /// <summary>
-        /// Gets the user info for the given <see cref="ClaimsPrincipal"/>.
-        /// </summary>
-        /// <param name="email">The email.</param>
-        /// <returns>The <see cref="Task"/> that represents the asynchronous operation, containing the <see cref="UserInfo"/> if it exists, else null.</returns>
-        Task<UserInfo?> GetUserInfoAsync(ClaimsPrincipal principal);
-
-        /// <summary>
-        /// Gets a list of users with the specified role.
-        /// </summary>
-        /// <param name="role"></param>
-        /// <returns>The <see cref="Task"/> that represents the asynchronous operation, containing the list of users.</returns>
-        Task<IReadOnlyList<UserInfo?>> GetUsersByRoleAsync(string role);
+        Task<Result<string?>> CreateUserAsync(string email, string password, Role role, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Deletes a user specified by id.
@@ -53,46 +31,39 @@ namespace Application.Common.Interfaces
         Task<bool> DeleteUserAsync(string userId);
 
         /// <summary>
-        /// Updates a user.
+        /// Generates an email confirmation token for the specified user.
         /// </summary>
         /// <param name="userId">The user id.</param>
-        /// <param name="email">The email.</param>
-        /// <param name="firstName">The first name.</param>
-        /// <param name="lastName">The last name.</param>
-        /// <param name="birthDate">The date of birth.</param>
-        /// <returns>The <see cref="Task"/> that represents the asynchronous operation, if succed true, else false.</returns>
-        Task<bool> UpdateUserAsync(string userId, string email, string firstName, string lastName, DateTime birthDate);
+        /// <returns>The <see cref="Task"/> that represents the asynchronous operation, an email confirmation token.</returns>
+        Task<string?> GetEmailConfirmationToken(string userId);
 
         /// <summary>
-        /// Updates a user.
+        /// Validates that an email confirmation token matches the specified user.
         /// </summary>
-        /// <param name="userId"></param>
-        /// <returns>The <see cref="Task"/> that represents the asynchronous operation, containing the <see cref="UserInfo"/> if it exists, else null.</returns>
-        Task<UserInfo?> GetUserInfoByIdAsync(string userId);
+        /// <param name="email">The user's email to validate the token against.</param>
+        /// <param name="token">The email confirmation token to validate.</param>
+        /// <returns>The <see cref="Task"/> that represents the asynchronous operation, containing the result of the operation.</returns>
+        Task<bool> ConfirmEmailAsync(string email, string token);
 
         /// <summary>
         /// Updates a user.
         /// </summary>
         /// <param name="userId">The user id.</param>
-        /// <param name="role">The user role.</param>
+        /// <param name="email">The email.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation, if succed true, else false.</returns>
-        Task<bool> ValidateUserRoleAsync(string userId, string role);
+        Task<bool> ChangeEmailAsync(string userId, string email);
 
         /// <summary>
-        /// Creates a new user with the specified role.
+        /// Returns a flag indicating whether the user has elevated access.
         /// </summary>
-        /// <param name="email">The email address.</param>
-        /// <param name="password">The password.</param>
-        /// <param name="firstName">The first name.</param>
-        /// <param name="lastName">The last name.</param>
-        /// <param name="birthDate">The date of birth.</param>
-        /// <returns>The <see cref="Task"/> that represents the asynchronous operation, containing the <see cref="Result{string}"/> of the operation.</returns>
-        Task<Result<string?>> CreateBackOfficeUserAsync(string email, string password, string firstName, string lastName, DateTime birthDate);
+        /// <param name="userId">The user id.</param>
+        /// <returns>The <see cref="Task"/> that represents the asynchronous operation, containing a flag indicating whether the user with the given id has elevated access.</returns>
+        Task<bool> IsElevatedAccessUser(string userId);
 
         /// <summary>
         /// Gets the user info of the authenticated user.
         /// </summary>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation, containing the <see cref="UserInfo"/> if authenticated, else null.</returns>
-        Task<UserInfo?> GetCurrentUserAsync(CancellationToken cancellationToken = default);
+        Task<Member?> GetCurrentUserAsync(bool trackChanges = false, CancellationToken cancellationToken = default);
     }
 }

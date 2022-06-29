@@ -10,14 +10,14 @@ namespace Infrastructure.Identity
 {
     public class IdentityTokenClaimsService : ITokenClaimsService
     {
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IUserClaimsPrincipalFactory<ApplicationUser> _claimsPrincipalFactory;
+        private readonly UserManager<CustomIdentityUser> _userManager;
+        private readonly IUserClaimsPrincipalFactory<CustomIdentityUser> _claimsPrincipalFactory;
         private readonly JwtSecurityTokenHandler _tokenHandler;
         private readonly IDateTimeService _dateTimeService;
         private readonly IConfiguration _configuration;
 
-        public IdentityTokenClaimsService(UserManager<ApplicationUser> userManager,
-            IUserClaimsPrincipalFactory<ApplicationUser> claimsPrincipalFactory,
+        public IdentityTokenClaimsService(UserManager<CustomIdentityUser> userManager,
+            IUserClaimsPrincipalFactory<CustomIdentityUser> claimsPrincipalFactory,
             JwtSecurityTokenHandler tokenHandler,
             IDateTimeService dateTimeService,
             IConfiguration configuration)

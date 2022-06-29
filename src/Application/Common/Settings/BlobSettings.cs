@@ -14,5 +14,8 @@ namespace Application.Common.Settings
 
         [Required]
         public string PostsSection { get; set; } = null!;
+
+        [Required]
+        public string UsersSection { get; set; } = null!;
     }
 }

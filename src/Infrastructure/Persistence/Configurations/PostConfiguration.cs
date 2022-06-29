@@ -1,5 +1,5 @@
 ﻿using Domain.Entities.Posts;
-using Infrastructure.Identity;
+using Domain.Entities.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -9,8 +9,8 @@ namespace Infrastructure.Persistence.Configurations
     {
         public void Configure(EntityTypeBuilder<Post> builder)
         {
-            builder.HasOne<ApplicationUser>()
-                .WithMany()
+            builder.HasOne<Member>()
+                .WithMany(m => m.Posts)
                 .HasForeignKey(p => p.CreatedBy);
 
             builder.OwnsMany(p => p.Images);

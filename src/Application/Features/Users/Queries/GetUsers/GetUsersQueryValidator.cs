@@ -1,13 +1,21 @@
-﻿using FluentValidation;
+﻿using Domain.Enumerations;
+using FluentValidation;
 
 namespace Application.Features.Users.Queries.GetUsers
 {
-    public class GetUsersQueryValidator: AbstractValidator<GetUsersQuery>
+    public class GetUsersQueryValidator : AbstractValidator<GetUsersQuery>
     {
         public GetUsersQueryValidator()
         {
-            RuleFor(q => q.Role)
-                .NotEmpty();
+            RuleForEach(q => q.Role)
+                .Must(BeValidRole)
+                .When(q => q.Role is { Count: > 0 })
+                .WithMessage("{PropertyValue} is not a valid {PropertyName}.");
+        }
+
+        private bool BeValidRole(string role)
+        {
+            return Role.TryFromName(role, true, out _);
         }
     }
 }

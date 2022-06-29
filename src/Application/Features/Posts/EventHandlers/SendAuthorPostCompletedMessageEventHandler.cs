@@ -1,34 +1,35 @@
 ﻿using Domain.Enumerations;
 using Domain.Events;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Features.Posts.EventHandlers
 {
     public class SendAuthorPostCompletedMessageEventHandler : INotificationHandler<PostCompletedEvent>
     {
+        private readonly IApplicationDbContext _dbContext;
         private readonly IEmailService _emailService;
-        private readonly IIdentityService _identityService;
         private readonly IEmailTemplateService _emailTemplateService;
 
-        public SendAuthorPostCompletedMessageEventHandler(IEmailService emailService, IIdentityService identityService, IEmailTemplateService emailTemplateService)
+        public SendAuthorPostCompletedMessageEventHandler(IApplicationDbContext dbContext, IEmailService emailService, IEmailTemplateService emailTemplateService)
         {
+            _dbContext = dbContext;
             _emailService = emailService;
-            _identityService = identityService;
             _emailTemplateService = emailTemplateService;
         }
 
         public async Task Handle(PostCompletedEvent notification, CancellationToken cancellationToken)
         {
-            var user = await _identityService.GetUserInfoByIdAsync(notification.Post.CreatedBy);
+            var author = await _dbContext.Members.FirstOrDefaultAsync(m => m.Id == notification.Post.CreatedBy, cancellationToken);
 
             var applicant = notification.Post.Applications.First(x => x.Status == ApplicationStatus.Accepted.Value && 
                                                                  x.PostId == notification.Post.Id);
                                                       
             var subject = "Su publicación se ha completado exitosamente";
                        
-            string body = _emailTemplateService.BuildPostCompletedTemplate(user!.FirstName, notification.Post.PetName, applicant.ApplicantInfo.Name, applicant.ApplicantInfo.Email, applicant.ApplicantInfo.PhoneNumber);
+            string body = _emailTemplateService.BuildPostCompletedTemplate(author!.FirstName, notification.Post.PetName, applicant.ApplicantInfo.Name, applicant.ApplicantInfo.Email, applicant.ApplicantInfo.PhoneNumber);
                         
-            await _emailService.SendAsync(user.Email, subject, body, cancellationToken);
+            await _emailService.SendAsync(author.Email, subject, body, cancellationToken);
         }
     }
 }

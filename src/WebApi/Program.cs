@@ -20,7 +20,7 @@ using (var scope = app.Services.CreateScope())
     var serviceProvider = scope.ServiceProvider;
 
     var dbContext = serviceProvider.GetRequiredService<PettopiaDbContext>();
-    var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+    var userManager = serviceProvider.GetRequiredService<UserManager<CustomIdentityUser>>();
     var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     var dateTimeService = serviceProvider.GetRequiredService<IDateTimeService>();
 

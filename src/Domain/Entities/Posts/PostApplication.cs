@@ -23,7 +23,7 @@
             string applicantId,
             string applicantName,
             string applicantEmail,
-            string? applicantPhoneNumber)
+            PhoneNumber? applicantPhoneNumber)
         {
             Id = Guid.NewGuid();
             PostId = postId;

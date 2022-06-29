@@ -1,6 +1,6 @@
-﻿using Application.Common.Exceptions;
-using Application.Common.Interfaces;
+﻿using Domain.Entities.Users;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Features.Authentication.Commands.Authenticate
 {
@@ -13,25 +13,31 @@ namespace Application.Features.Authentication.Commands.Authenticate
 
     public class AuthenticateCommandHandler : IRequestHandler<AuthenticateCommand, AuthenticateDto>
     {
+        private readonly IApplicationDbContext _dbContext;
         private readonly IIdentityService _identityService;
 
-        public AuthenticateCommandHandler(IIdentityService identityService)
+        public AuthenticateCommandHandler(IApplicationDbContext dbContext, IIdentityService identityService)
         {
+            _dbContext = dbContext;
             _identityService = identityService;
         }
 
         public async Task<AuthenticateDto> Handle(AuthenticateCommand request, CancellationToken cancellationToken)
         {
             var token = await _identityService.AuthenticateAsync(request.Email, request.Password) ?? throw new AuthenticationFailedException();
-            var userInfo = await _identityService.GetUserInfoAsync(request.Email);
+            var user = await _dbContext.Members
+                .FirstOrDefaultAsync(m => m.Email == request.Email, cancellationToken)
+                ?? throw new ForbiddenAccessException();
 
             return new AuthenticateDto
             {
-                Id = userInfo!.Id,
-                Email = userInfo!.Email,
-                FirstName = userInfo!.FirstName,
-                LastName = userInfo!.LastName,
-                Role = userInfo!.Role,
+                Id = user.Id,
+                Email = user.Email,
+                OrganizationName = (user as Fosterer)?.OrganizationName,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                IsProfileComplete = user.IsComplete,
+                Role = user.Role.Name,
                 Token = token
             };
         }

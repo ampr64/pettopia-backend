@@ -8,9 +8,13 @@
 
         public string Email { get; private init; }
 
-        public string? PhoneNumber { get; private init; }
+        public PhoneNumber? PhoneNumber { get; private init; }
 
-        public ApplicantInfo(Guid applicationId, string name, string email, string? phoneNumber)
+        private ApplicantInfo()
+        {
+        }
+
+        public ApplicantInfo(Guid applicationId, string name, string email, PhoneNumber? phoneNumber)
         {
             ApplicationId = applicationId;
             Name = name;

@@ -1,5 +1,5 @@
 ﻿using Domain.Entities.Posts;
-using Infrastructure.Identity;
+using Domain.Entities.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -12,7 +12,7 @@ namespace Infrastructure.Persistence.Configurations
             builder.Property(pa => pa.Id)
                 .ValueGeneratedNever();
 
-            builder.HasOne<ApplicationUser>()
+            builder.HasOne<Member>()
                 .WithMany()
                 .HasForeignKey(a => a.ApplicantId);
 
@@ -27,8 +27,16 @@ namespace Infrastructure.Persistence.Configurations
                 ai.Property(a => a.Name)
                     .HasMaxLength(100);
 
-                ai.Property(a => a.PhoneNumber)
-                    .HasMaxLength(50);
+                ai.OwnsOne(a => a.PhoneNumber, p =>
+                {
+                    p.WithOwner();
+
+                    p.Property(p => p.Prefix)
+                        .HasMaxLength(5);
+
+                    p.Property(p => p.Number)
+                        .HasMaxLength(12);
+                });
             });
         }
     }

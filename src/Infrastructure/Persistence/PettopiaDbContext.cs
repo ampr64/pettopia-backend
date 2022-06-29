@@ -1,7 +1,7 @@
 ﻿using Application.Common.Interfaces;
 using Domain.Common;
 using Domain.Entities.Posts;
-using Infrastructure.Identity;
+using Domain.Entities.Users;
 using MediatR;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -10,7 +10,7 @@ using System.Reflection;
 
 namespace Infrastructure.Persistence
 {
-    public class PettopiaDbContext : IdentityDbContext<ApplicationUser>, IApplicationDbContext
+    public class PettopiaDbContext : IdentityDbContext<CustomIdentityUser>, IApplicationDbContext
     {
         public static readonly string ConnectionStringKey = "PettopiaDb";
         private readonly IMediator _mediator;
@@ -22,19 +22,27 @@ namespace Infrastructure.Persistence
             _mediator = mediator;
         }
 
+        public DbSet<EndUser> Adopters => Set<EndUser>();
+
         public DbSet<PostApplication> Applications => Set<PostApplication>();
+
+        public DbSet<BackOfficeUser> BackOfficeUsers => Set<BackOfficeUser>();
+
+        public DbSet<Fosterer> Fosterers => Set<Fosterer>();
+
+        public DbSet<Member> Members => Set<Member>();
 
         public DbSet<Post> Posts => Set<Post>();
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
-            builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
             builder.ConfigureSmartEnum();
+            builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
             base.OnModelCreating(builder);
         }
 
-        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             var domainEventEntities = ChangeTracker
                 .Entries<IHasDomainEvents>()
@@ -49,11 +57,11 @@ namespace Infrastructure.Persistence
 
                 foreach (var domainEvent in domainEvents)
                 {
-                    _mediator.Publish(domainEvent, cancellationToken);
+                    await _mediator.Publish(domainEvent, cancellationToken);
                 }
             }
 
-            return base.SaveChangesAsync(cancellationToken);
+            return await base.SaveChangesAsync(cancellationToken);
         }
     }
 }

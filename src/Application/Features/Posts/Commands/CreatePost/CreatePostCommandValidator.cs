@@ -14,7 +14,7 @@ namespace Application.Features.Posts.Commands.CreatePost
         };
 
         private static readonly int MinimumSize = 1000; // 1KB
-        private static readonly int MaximumSize = 5000000; // 5MB
+        private static readonly int MaximumSize = 10000000; // 10MB
 
         public CreatePostCommandValidator()
         {
@@ -59,7 +59,7 @@ namespace Application.Features.Posts.Commands.CreatePost
 
                     _.RuleFor(f => f.Length)
                         .InclusiveBetween(MinimumSize, MaximumSize)
-                        .WithMessage("Image size cannot be less than 1KB or greater than 5MB.");
+                        .WithMessage("Image size cannot be less than 1KB or greater than 10MB.");
                 });
         }
 

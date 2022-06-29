@@ -47,6 +47,9 @@ namespace Application.Features.Posts.Commands.CreatePost
 
         public async Task<Guid> Handle(CreatePostCommand request, CancellationToken cancellationToken)
         {
+            var currentUserId = _currentUserService.UserId!;
+            var now = _dateTimeService.Now;
+
             var post = new Post((PostType)request.PostType,
                 request.PetName,
                 request.Description,
@@ -54,12 +57,12 @@ namespace Application.Features.Posts.Commands.CreatePost
                 (NeuterStatus)request.NeuterStatus,
                 (PetAge)request.PetAge,
                 (PetSpecies)request.PetSpecies,
-                _currentUserService.UserId!,
-                _dateTimeService.Now);
+                currentUserId,
+                now);
 
             var blobs = await UploadBlobsAsync(request.Images, post, cancellationToken);
 
-            post.SetImages(GetPostImages(post, blobs), _dateTimeService.Now);
+            post.SetImages(GetPostImages(post, blobs), now);
 
             await _dbContext.Posts.AddAsync(post, cancellationToken);
             await _dbContext.SaveChangesAsync(cancellationToken);

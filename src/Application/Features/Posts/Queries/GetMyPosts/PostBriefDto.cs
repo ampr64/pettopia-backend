@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.Text.Json.Serialization;
 
 namespace Application.Features.Posts.Queries.GetMyPosts
 {
@@ -16,7 +16,7 @@ namespace Application.Features.Posts.Queries.GetMyPosts
 
         public BlobData Thumbnail { get; set; } = null!;
 
-        [NotMapped]
+        [JsonIgnore]
         public string BlobName { get; set; } = null!;
 
         public IReadOnlyList<ApplicationBriefDto> Applications { get; set; } = new List<ApplicationBriefDto>();

@@ -110,7 +110,7 @@
             string applicantId,
             string applicantName,
             string applicantEmail,
-            string? applicantPhoneNumber)
+            PhoneNumber? applicantPhoneNumber)
         {
             if (!IsOpen) throw new DomainException("Post must be open to add an application.");
             if (CreatedBy == applicantId) throw new DomainException("Post author cannot apply to their own post.");
