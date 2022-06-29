@@ -1,4 +1,4 @@
-﻿using Application.Common.Interfaces;
+﻿using Domain.Enumerations;
 using Domain.Events;
 using MediatR;
 
@@ -21,13 +21,12 @@ namespace Application.Features.Posts.EventHandlers
         {
             var user = await _identityService.GetUserInfoByIdAsync(notification.Post.CreatedBy);
 
-            string postId = notification.Post.Id.ToString();
-
-            string postUrl = "https://localhost:4200" + postId;
-
+            var applicant = notification.Post.Applications.First(x => x.Status == ApplicationStatus.Accepted.Value && 
+                                                                 x.PostId == notification.Post.Id);
+                                                      
             var subject = "Su publicación se ha completado exitosamente";
                        
-            string body = _emailTemplateService.BuildPostCompletedTemplate(user!.FirstName, notification.Post.PetName, postUrl);
+            string body = _emailTemplateService.BuildPostCompletedTemplate(user!.FirstName, notification.Post.PetName, applicant.ApplicantInfo.Name, applicant.ApplicantInfo.Email, applicant.ApplicantInfo.PhoneNumber);
                         
             await _emailService.SendAsync(user.Email, subject, body, cancellationToken);
         }

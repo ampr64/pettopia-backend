@@ -7,7 +7,9 @@ namespace Infrastructure.Mail.Templates
 {
     public class EmailTemplateService : IEmailTemplateService
     {
-        public string BuildPostCompletedTemplate(string firstName, string petName, string postLink)
+        private const string NULL_PHONE_NUMBER = "No posee.";
+
+        public string BuildPostCompletedTemplate(string firstName, string petName, string applicantName, string applicantEmail, string? applicantPhoneNumber)
         {
             var builder = new BodyBuilder();
 
@@ -23,7 +25,7 @@ namespace Infrastructure.Mail.Templates
                 builder.HtmlBody = SourceReader.ReadToEnd();
             }
 
-            string body = string.Format(builder.HtmlBody, firstName, petName, postLink);
+            string body = string.Format(builder.HtmlBody, firstName, petName, applicantName, applicantEmail, applicantPhoneNumber ?? NULL_PHONE_NUMBER);
 
             return body;
         }

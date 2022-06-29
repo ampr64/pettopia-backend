@@ -5,6 +5,6 @@ namespace Application.Common.Interfaces
     {
         string BuildPostCreatedTemplate(string firstName, string petName, string postLink);
 
-        string BuildPostCompletedTemplate(string firstName, string petName, string postLink);
+        string BuildPostCompletedTemplate(string firstName, string petName, string applicantName, string applicantEmail, string? applicantPhoneNumber);
     }
 }
