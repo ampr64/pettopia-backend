@@ -69,7 +69,7 @@ namespace Infrastructure
             services.AddTransient<ITokenClaimsService, IdentityTokenClaimsService>();
             services.AddTransient<IDateTimeService, UtcDateTimeService>();
             services.AddTransient<JwtSecurityTokenHandler>();
-            services.AddTransient<IEmailService, SmtpEmailSender>();
+            services.AddTransient<IEmailSender, SmtpEmailSender>();
 
             return services;
         }

@@ -5,12 +5,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Features.Posts.EventHandlers
 {
-    public class SendAuthorPostCompletedMessageEventHandler : INotificationHandler<PostCompletedEvent>
+    public class PostCompletedEventHandler : INotificationHandler<PostCompletedEvent>
     {
         private readonly IApplicationDbContext _dbContext;
-        private readonly IEmailService _emailService;
+        private readonly IEmailSender _emailService;
 
-        public SendAuthorPostCompletedMessageEventHandler(IApplicationDbContext dbContext, IEmailService emailService)
+        public PostCompletedEventHandler(IApplicationDbContext dbContext, IEmailSender emailService)
         {
             _dbContext = dbContext;
             _emailService = emailService;

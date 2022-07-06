@@ -22,6 +22,8 @@
 
         public DateTime CreatedAt { get; private init; }
 
+        public Member Author { get; private set; }
+
         public DateTime? UpdatedAt { get; private set; } = null;
 
         private readonly List<PostImage> _images = new();
@@ -76,6 +78,25 @@
             _images.AddRange(images);
         }
 
+        public Guid AddApplication(DateTime now,
+            string applicantId,
+            string applicantName,
+            string applicantEmail,
+            PhoneNumber? applicantPhoneNumber)
+        {
+            if (!IsOpen) throw new DomainException("Post must be open to add an application.");
+            if (CreatedBy == applicantId) throw new DomainException("Post author cannot apply to their own post.");
+            if (_applications.Any(a => a.ApplicantId == applicantId && a.Status != ApplicationStatus.Canceled)) throw new DomainException("User has already applied for this post.");
+
+            var application = new PostApplication(Id, now, applicantId, applicantName, applicantEmail, applicantPhoneNumber);
+
+            _applications.Add(application);
+
+            AddDomainEvent(new ApplicationSubmittedEvent(application));
+
+            return application.Id;
+        }
+
         public void Close(DateTime updatedAt)
         {
             if (!IsOpen) throw new DomainException($"Post must be open to close it.");
@@ -104,24 +125,7 @@
             Status = PostStatus.Completed;
 
             AddDomainEvent(new PostCompletedEvent(this));
-        }
-
-        public Guid AddApplication(DateTime now,
-            string applicantId,
-            string applicantName,
-            string applicantEmail,
-            PhoneNumber? applicantPhoneNumber)
-        {
-            if (!IsOpen) throw new DomainException("Post must be open to add an application.");
-            if (CreatedBy == applicantId) throw new DomainException("Post author cannot apply to their own post.");
-
-            var application = new PostApplication(Id, now, applicantId, applicantName, applicantEmail, applicantPhoneNumber);
-            if (_applications.Any(a => a.ApplicantId == application.ApplicantId && a.Status != ApplicationStatus.Canceled)) throw new DomainException("User has already applied for this post.");
-
-            _applications.Add(application);
-
-            return application.Id;
-        }
+        }        
 
         public void RejectApplication(PostApplication application, DateTime now)
         {

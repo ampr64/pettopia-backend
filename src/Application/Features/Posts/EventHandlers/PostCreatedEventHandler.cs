@@ -7,10 +7,10 @@ namespace Application.Features.Posts.EventHandlers
     public class PostCreatedEventHandler : INotificationHandler<PostCreatedEvent>
     {
         private readonly IApplicationDbContext _dbContext;
-        private readonly IEmailService _emailService;
+        private readonly IEmailSender _emailService;
         private readonly IUriComposer _uriComposer;
 
-        public PostCreatedEventHandler(IApplicationDbContext dbContext, IEmailService emailService, IUriComposer uriComposer)
+        public PostCreatedEventHandler(IApplicationDbContext dbContext, IEmailSender emailService, IUriComposer uriComposer)
         {
             _dbContext = dbContext;
             _emailService = emailService;

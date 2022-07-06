@@ -1,6 +1,6 @@
 ﻿namespace Domain.Events
 {
-    public class UserRegisteredEvent : DomainEvent
+    public sealed class UserRegisteredEvent : DomainEvent
     {
         public Member Member { get; }
 

@@ -6,7 +6,7 @@ using MimeKit.Text;
 
 namespace Infrastructure.Mail
 {
-    public class SmtpEmailSender : IEmailService
+    public class SmtpEmailSender : IEmailSender
     {
         private readonly SmtpSettings _settings;
 
