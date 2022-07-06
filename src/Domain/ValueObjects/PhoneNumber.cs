@@ -27,6 +27,6 @@
             yield return Number;
         }
 
-        public static implicit operator string?(PhoneNumber? phoneNumber) => phoneNumber?.ToString();
+        public static implicit operator string(PhoneNumber phoneNumber) => phoneNumber.ToString();
     }
 }
