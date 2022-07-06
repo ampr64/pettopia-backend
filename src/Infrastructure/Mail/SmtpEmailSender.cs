@@ -6,11 +6,11 @@ using MimeKit.Text;
 
 namespace Infrastructure.Mail
 {
-    public class SmtpEmailService : IEmailService
+    public class SmtpEmailSender : IEmailService
     {
         private readonly SmtpSettings _settings;
 
-        public SmtpEmailService(SmtpSettings settings)
+        public SmtpEmailSender(SmtpSettings settings)
         {            
             _settings = settings;
         }

@@ -9,13 +9,11 @@ namespace Application.Features.Posts.EventHandlers
     {
         private readonly IApplicationDbContext _dbContext;
         private readonly IEmailService _emailService;
-        private readonly IEmailTemplateService _emailTemplateService;
 
-        public SendAuthorPostCompletedMessageEventHandler(IApplicationDbContext dbContext, IEmailService emailService, IEmailTemplateService emailTemplateService)
+        public SendAuthorPostCompletedMessageEventHandler(IApplicationDbContext dbContext, IEmailService emailService)
         {
             _dbContext = dbContext;
             _emailService = emailService;
-            _emailTemplateService = emailTemplateService;
         }
 
         public async Task Handle(PostCompletedEvent notification, CancellationToken cancellationToken)
@@ -24,11 +22,12 @@ namespace Application.Features.Posts.EventHandlers
 
             var applicant = notification.Post.Applications.First(x => x.Status == ApplicationStatus.Accepted.Value && 
                                                                  x.PostId == notification.Post.Id);
-                                                      
-            var subject = "Su publicación se ha completado exitosamente";
-                       
-            string body = _emailTemplateService.BuildPostCompletedTemplate(author!.FirstName, notification.Post.PetName, applicant.ApplicantInfo.Name, applicant.ApplicantInfo.Email, applicant.ApplicantInfo.PhoneNumber);
-                        
+
+            var subject = "Your post has been completed successfully.";
+            var body = $"<b>Hi, {author!.FirstName}!</b>"
+                + $"<br>We wanted to let you know that your post for <b>{notification.Post.PetName}</b> has been completed succesfully.<br>"
+                + "Thank you for using our platform!";
+
             await _emailService.SendAsync(author.Email, subject, body, cancellationToken);
         }
     }

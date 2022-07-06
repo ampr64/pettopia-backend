@@ -3,7 +3,6 @@ using Application.Common.Settings;
 using Azure.Storage.Blobs;
 using Infrastructure.Extensions;
 using Infrastructure.Mail;
-using Infrastructure.Mail.Templates;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -29,7 +28,7 @@ namespace Infrastructure
             services.AddIdentityCore<CustomIdentityUser>(options =>
             {
                 options.User.RequireUniqueEmail = true;
-                //options.SignIn.RequireConfirmedEmail = true;
+                options.SignIn.RequireConfirmedEmail = true;
             })
               .AddRoles<IdentityRole>()
               .AddEntityFrameworkStores<PettopiaDbContext>()
@@ -70,8 +69,7 @@ namespace Infrastructure
             services.AddTransient<ITokenClaimsService, IdentityTokenClaimsService>();
             services.AddTransient<IDateTimeService, UtcDateTimeService>();
             services.AddTransient<JwtSecurityTokenHandler>();
-            services.AddTransient<IEmailService, SmtpEmailService>();
-            services.AddTransient<IEmailTemplateService, EmailTemplateService>();
+            services.AddTransient<IEmailService, SmtpEmailSender>();
 
             return services;
         }
