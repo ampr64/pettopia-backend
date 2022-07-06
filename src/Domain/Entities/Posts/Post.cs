@@ -92,7 +92,7 @@
 
             _applications.Add(application);
 
-            AddDomainEvent(new ApplicationSubmittedEvent(application));
+            AddDomainEvent(new PostApplicationSubmittedEvent(application));
 
             return application.Id;
         }

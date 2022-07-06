@@ -5,18 +5,18 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Features.PostApplications.EventHandlers
 {
-    public class ApplicationSubmittedNotifyApplicantEventHandler : INotificationHandler<ApplicationSubmittedEvent>
+    public class PostApplicationSubmittedNotifyAuthorEventHandler : INotificationHandler<PostApplicationSubmittedEvent>
     {
         private readonly IApplicationDbContext _dbContext;
         private readonly IEmailSender _emailSender;
 
-        public ApplicationSubmittedNotifyApplicantEventHandler(IApplicationDbContext dbContext, IEmailSender emailSender)
+        public PostApplicationSubmittedNotifyAuthorEventHandler(IApplicationDbContext dbContext, IEmailSender emailSender)
         {
             _dbContext = dbContext;
             _emailSender = emailSender;
         }
 
-        public async Task Handle(ApplicationSubmittedEvent notification, CancellationToken cancellationToken)
+        public async Task Handle(PostApplicationSubmittedEvent notification, CancellationToken cancellationToken)
         {
             var post = await _dbContext.Posts
                 .AsNoTracking()
@@ -27,10 +27,13 @@ namespace Application.Features.PostApplications.EventHandlers
 
             var recipientEmail = notification.Application.ApplicantInfo.Email;
 
-            var subject = $"Application submitted.";
+            var subject = $"New application received for {post.PetName}";
 
-            var body = $"Hi, <b>{notification.Application.ApplicantInfo.Name}</b>!"
-                + $"<br>Your application for {post.PetName} has been submitted. {post.Author.FirstName} will contact you shortly.";
+            var body = $"Hi, <b>{authorName}</b>!"
+                + $"<br>There is a new application for {post.PetName}. Below are the applicant's contact details."
+                + $"<br>Name: {notification.Application.ApplicantInfo.Name}"
+                + $"<br>Email: {notification.Application.ApplicantInfo.Email}"
+                + $"<br>Phone number: {notification.Application.ApplicantInfo.PhoneNumber}";
 
             await _emailSender.SendAsync(notification.Application.ApplicantInfo.Email, subject, body, cancellationToken);
         }

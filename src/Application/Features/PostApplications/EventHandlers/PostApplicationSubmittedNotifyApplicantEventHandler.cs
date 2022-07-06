@@ -5,18 +5,18 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Features.PostApplications.EventHandlers
 {
-    public class ApplicationSubmittedNotifyAuthorEventHandler : INotificationHandler<ApplicationSubmittedEvent>
+    public class PostApplicationSubmittedNotifyApplicantEventHandler : INotificationHandler<PostApplicationSubmittedEvent>
     {
         private readonly IApplicationDbContext _dbContext;
         private readonly IEmailSender _emailSender;
 
-        public ApplicationSubmittedNotifyAuthorEventHandler(IApplicationDbContext dbContext, IEmailSender emailSender)
+        public PostApplicationSubmittedNotifyApplicantEventHandler(IApplicationDbContext dbContext, IEmailSender emailSender)
         {
             _dbContext = dbContext;
             _emailSender = emailSender;
         }
 
-        public async Task Handle(ApplicationSubmittedEvent notification, CancellationToken cancellationToken)
+        public async Task Handle(PostApplicationSubmittedEvent notification, CancellationToken cancellationToken)
         {
             var post = await _dbContext.Posts
                 .AsNoTracking()
@@ -27,13 +27,10 @@ namespace Application.Features.PostApplications.EventHandlers
 
             var recipientEmail = notification.Application.ApplicantInfo.Email;
 
-            var subject = $"New application received for {post.PetName}";
+            var subject = $"Application submitted.";
 
-            var body = $"Hi, <b>{authorName}</b>!"
-                + $"<br>There is a new application for {post.PetName}. Below are the applicant's contact details."
-                + $"<br>Name: {notification.Application.ApplicantInfo.Name}"
-                + $"<br>Email: {notification.Application.ApplicantInfo.Email}"
-                + $"<br>Phone number: {notification.Application.ApplicantInfo.PhoneNumber}";
+            var body = $"Hi, <b>{notification.Application.ApplicantInfo.Name}</b>!"
+                + $"<br>Your application for {post.PetName} has been submitted. {post.Author.FirstName} will contact you shortly.";
 
             await _emailSender.SendAsync(notification.Application.ApplicantInfo.Email, subject, body, cancellationToken);
         }

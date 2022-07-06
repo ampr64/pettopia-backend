@@ -1,10 +1,10 @@
 ﻿namespace Domain.Events
 {
-    public sealed class ApplicationSubmittedEvent : DomainEvent
+    public sealed class PostApplicationSubmittedEvent : DomainEvent
     {
         public PostApplication Application { get; }
 
-        public ApplicationSubmittedEvent(PostApplication application)
+        public PostApplicationSubmittedEvent(PostApplication application)
         {
             Application = application;
         }
