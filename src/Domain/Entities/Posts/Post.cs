@@ -34,7 +34,7 @@
 
         private bool IsOpen => Status == PostStatus.Open;
 
-        private IEnumerable<PostApplication> PendingApplications => _applications.Where(a => a.Status == ApplicationStatus.Pending);
+        private IList<PostApplication> PendingApplications => _applications.Where(a => a.Status == ApplicationStatus.Pending).ToList();
 
         private Post() { }
 
@@ -69,11 +69,8 @@
             if (!IsOpen) throw new DomainException($"Post must be open to set images.");
             if (!images.Any()) throw new DomainException($"Cannot set an empty list of images to a post.");
 
-            if (_images.Count > 0)
-            {
-                UpdatedAt = updatedAt;
-                _images.Clear();
-            }
+            UpdatedAt = updatedAt;
+            _images.Clear();
 
             _images.AddRange(images);
         }
@@ -125,7 +122,7 @@
             Status = PostStatus.Completed;
 
             AddDomainEvent(new PostCompletedEvent(this));
-        }        
+        }
 
         public void RejectApplication(PostApplication application, DateTime now)
         {
