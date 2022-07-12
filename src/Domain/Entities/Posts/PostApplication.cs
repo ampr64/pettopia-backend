@@ -38,6 +38,8 @@
 
             Status = ApplicationStatus.Accepted;
             UpdatedAt = acceptedAt;
+
+            RaiseDomainEvent(new PostApplicationAcceptedEvent(this));
         }
 
         internal void Reject(DateTime rejectedAt)
@@ -46,6 +48,8 @@
 
             Status = ApplicationStatus.Rejected;
             UpdatedAt = rejectedAt;
+
+            RaiseDomainEvent(new PostApplicationRejectedEvent(this));
         }
 
         internal void Cancel(DateTime canceledAt)
@@ -54,6 +58,8 @@
 
             Status = ApplicationStatus.Canceled;
             UpdatedAt = canceledAt;
+
+            RaiseDomainEvent(new PostApplicationCanceledEvent(this));
         }
     }
 }

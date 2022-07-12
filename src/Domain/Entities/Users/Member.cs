@@ -52,7 +52,7 @@
             BirthDate = birthDate;
             RegisteredAt = registeredAt;
 
-            AddDomainEvent(new UserRegisteredEvent(this));
+            RaiseDomainEvent(new UserRegisteredEvent(this));
         }
 
         public void UpdateDetails(DateTime updatedAt, string firstName, string lastName, DateTime birthDate)

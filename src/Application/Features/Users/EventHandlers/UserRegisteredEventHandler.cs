@@ -6,10 +6,10 @@ namespace Application.Features.Users.EventHandlers
     public class UserRegisteredEventHandler : INotificationHandler<UserRegisteredEvent>
     {
         private readonly IIdentityService _identityService;
-        private readonly IEmailService _emailService;
+        private readonly IEmailSender _emailService;
         private readonly IUriComposer _uriComposer;
 
-        public UserRegisteredEventHandler(IIdentityService identityService, IEmailService emailService, IUriComposer uriComposer)
+        public UserRegisteredEventHandler(IIdentityService identityService, IEmailSender emailService, IUriComposer uriComposer)
         {
             _identityService = identityService;
             _emailService = emailService;

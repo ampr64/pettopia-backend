@@ -22,6 +22,8 @@
 
         public DateTime CreatedAt { get; private init; }
 
+        public Member Author { get; private set; }
+
         public DateTime? UpdatedAt { get; private set; } = null;
 
         private readonly List<PostImage> _images = new();
@@ -32,7 +34,7 @@
 
         private bool IsOpen => Status == PostStatus.Open;
 
-        private IEnumerable<PostApplication> PendingApplications => _applications.Where(a => a.Status == ApplicationStatus.Pending);
+        private List<PostApplication> PendingApplications => _applications.Where(a => a.Status == ApplicationStatus.Pending).ToList();
 
         private Post() { }
 
@@ -59,7 +61,7 @@
             CreatedAt = createdAt;
             Type = postType;
 
-            AddDomainEvent(new PostCreatedEvent(this));
+            RaiseDomainEvent(new PostCreatedEvent(this));
         }
 
         public void SetImages(IEnumerable<PostImage> images, DateTime updatedAt)
@@ -67,22 +69,36 @@
             if (!IsOpen) throw new DomainException($"Post must be open to set images.");
             if (!images.Any()) throw new DomainException($"Cannot set an empty list of images to a post.");
 
-            if (_images.Count > 0)
-            {
-                UpdatedAt = updatedAt;
-                _images.Clear();
-            }
+            UpdatedAt = updatedAt;
+            _images.Clear();
 
             _images.AddRange(images);
+        }
+
+        public Guid AddApplication(DateTime now,
+            string applicantId,
+            string applicantName,
+            string applicantEmail,
+            PhoneNumber? applicantPhoneNumber)
+        {
+            if (!IsOpen) throw new DomainException("Post must be open to add an application.");
+            if (CreatedBy == applicantId) throw new DomainException("Post author cannot apply to their own post.");
+            if (_applications.Any(a => a.ApplicantId == applicantId && a.Status != ApplicationStatus.Canceled)) throw new DomainException("User has already applied for this post.");
+
+            var application = new PostApplication(Id, now, applicantId, applicantName, applicantEmail, applicantPhoneNumber);
+
+            _applications.Add(application);
+
+            RaiseDomainEvent(new PostApplicationSubmittedEvent(application));
+
+            return application.Id;
         }
 
         public void Close(DateTime updatedAt)
         {
             if (!IsOpen) throw new DomainException($"Post must be open to close it.");
 
-            PendingApplications
-                .ToList()
-                .ForEach(a => a.Cancel(updatedAt));
+            PendingApplications.ForEach(a => a.Cancel(updatedAt));
 
             UpdatedAt = updatedAt;
             Status = PostStatus.Closed;
@@ -95,32 +111,12 @@
 
             application.Accept(updatedAt);
 
-            PendingApplications
-                .Where(a => a != application)
-                .ToList()
-                .ForEach(a => a.Reject(updatedAt));
+            PendingApplications.ForEach(a => a.Reject(updatedAt));
 
             UpdatedAt = updatedAt;
             Status = PostStatus.Completed;
 
-            AddDomainEvent(new PostCompletedEvent(this));
-        }
-
-        public Guid AddApplication(DateTime now,
-            string applicantId,
-            string applicantName,
-            string applicantEmail,
-            PhoneNumber? applicantPhoneNumber)
-        {
-            if (!IsOpen) throw new DomainException("Post must be open to add an application.");
-            if (CreatedBy == applicantId) throw new DomainException("Post author cannot apply to their own post.");
-
-            var application = new PostApplication(Id, now, applicantId, applicantName, applicantEmail, applicantPhoneNumber);
-            if (_applications.Any(a => a.ApplicantId == application.ApplicantId && a.Status != ApplicationStatus.Canceled)) throw new DomainException("User has already applied for this post.");
-
-            _applications.Add(application);
-
-            return application.Id;
+            RaiseDomainEvent(new PostCompletedEvent(this));
         }
 
         public void RejectApplication(PostApplication application, DateTime now)
