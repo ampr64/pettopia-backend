@@ -14,7 +14,7 @@ namespace Domain.Common
         [NotMapped]
         public IReadOnlyList<DomainEvent> DomainEvents => _domainEvents.AsReadOnly();
 
-        protected void AddDomainEvent(DomainEvent domainEvent)
+        protected void RaiseDomainEvent(DomainEvent domainEvent)
         {
             _domainEvents.Add(domainEvent);
         }

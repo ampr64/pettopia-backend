@@ -34,7 +34,7 @@
 
         private bool IsOpen => Status == PostStatus.Open;
 
-        private IList<PostApplication> PendingApplications => _applications.Where(a => a.Status == ApplicationStatus.Pending).ToList();
+        private List<PostApplication> PendingApplications => _applications.Where(a => a.Status == ApplicationStatus.Pending).ToList();
 
         private Post() { }
 
@@ -61,7 +61,7 @@
             CreatedAt = createdAt;
             Type = postType;
 
-            AddDomainEvent(new PostCreatedEvent(this));
+            RaiseDomainEvent(new PostCreatedEvent(this));
         }
 
         public void SetImages(IEnumerable<PostImage> images, DateTime updatedAt)
@@ -89,7 +89,7 @@
 
             _applications.Add(application);
 
-            AddDomainEvent(new PostApplicationSubmittedEvent(application));
+            RaiseDomainEvent(new PostApplicationSubmittedEvent(application));
 
             return application.Id;
         }
@@ -98,9 +98,7 @@
         {
             if (!IsOpen) throw new DomainException($"Post must be open to close it.");
 
-            PendingApplications
-                .ToList()
-                .ForEach(a => a.Cancel(updatedAt));
+            PendingApplications.ForEach(a => a.Cancel(updatedAt));
 
             UpdatedAt = updatedAt;
             Status = PostStatus.Closed;
@@ -113,15 +111,12 @@
 
             application.Accept(updatedAt);
 
-            PendingApplications
-                .Where(a => a != application)
-                .ToList()
-                .ForEach(a => a.Reject(updatedAt));
+            PendingApplications.ForEach(a => a.Reject(updatedAt));
 
             UpdatedAt = updatedAt;
             Status = PostStatus.Completed;
 
-            AddDomainEvent(new PostCompletedEvent(this));
+            RaiseDomainEvent(new PostCompletedEvent(this));
         }
 
         public void RejectApplication(PostApplication application, DateTime now)
