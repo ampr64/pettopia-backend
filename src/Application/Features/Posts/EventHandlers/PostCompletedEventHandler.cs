@@ -1,5 +1,4 @@
-﻿using Domain.Enumerations;
-using Domain.Events;
+﻿using Domain.Events;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,9 +18,6 @@ namespace Application.Features.Posts.EventHandlers
         public async Task Handle(PostCompletedEvent notification, CancellationToken cancellationToken)
         {
             var author = await _dbContext.Members.FirstOrDefaultAsync(m => m.Id == notification.Post.CreatedBy, cancellationToken);
-
-            var applicant = notification.Post.Applications.First(x => x.Status == ApplicationStatus.Accepted.Value && 
-                                                                 x.PostId == notification.Post.Id);
 
             var subject = "Your post has been completed successfully.";
             var body = $"<b>Hi, {author!.FirstName}!</b>"

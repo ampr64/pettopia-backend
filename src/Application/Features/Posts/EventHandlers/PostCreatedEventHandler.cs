@@ -28,8 +28,8 @@ namespace Application.Features.Posts.EventHandlers
             var subject = "Post created successfully.";
 
             var body = $"<b>Hi, {author!.FirstName}!</b>"
-                + $"<br>We wanted to let you know that your post for <b>{notification.Post.PetName}</b> has been created successfully.<br>"
-                + "Thanks for using our platform!";
+                + $"<br>We wanted to let you know that your post for <b>{notification.Post.PetName}</b> has been created successfully."
+                + "<br>Thanks for using our platform!";
 
             await _emailService.SendAsync(author.Email, subject, body, cancellationToken);
         }
