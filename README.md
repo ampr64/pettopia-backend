@@ -1,8 +1,6 @@
-# About Pettopia 
+# About Pettopia
 Pettopia is a web application where members - be it shelters, rescue groups or just persons - can post animals up for adoption as well as help owners find their missing pets.
-
-# Project
-This is the backend solution
+Originally, this was the final year project for my degree, but I decided to share it here as more of a sample project.
 
 # Frameworks and libraries
 * [ASP.NET Core 6](https://docs.microsoft.com/en-us/aspnet/core/introduction-to-aspnet-core?view=aspnetcore-6.0) with [C# 10](https://docs.microsoft.com/en-us/dotnet/csharp/whats-new/csharp-10)
@@ -18,3 +16,8 @@ This is the backend solution
 * [FluentAssertions](https://github.com/fluentassertions/fluentassertions) for more readable test assertions
 * [Moq](https://github.com/moq/moq4) for mocking
 * [AutoFixture](https://github.com/AutoFixture/AutoFixture) for easier test data generation
+
+# References
+* [eShopOnWeb by Microsoft](https://github.com/dotnet-architecture/eShopOnWeb)
+* [Clean Architecture by Jason Taylor](https://github.com/jasontaylordev/CleanArchitecture)
+* [Sample DotNet Core CQRS API by Kamil Grzybek](https://github.com/kgrzybek/sample-dotnet-core-cqrs-api)
