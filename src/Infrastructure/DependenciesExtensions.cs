@@ -35,23 +35,22 @@ namespace Infrastructure
               .AddDefaultTokenProviders()
               .AddSignInManager();
 
+            var jwtSettings = services.ConfigureSettings<JwtSettings>(configuration, JwtSettings.Section);
             services
                 .AddAuthentication(authOpts => authOpts.DefaultScheme = JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(jwtOpts =>
                 {
-                    jwtOpts.SaveToken = true;
+                    var key = Encoding.UTF8.GetBytes(jwtSettings.AppSecret);
 
-                    var secret = configuration.GetValue<string>("AppSecret");
-                    var key = Encoding.ASCII.GetBytes(secret);
                     jwtOpts.TokenValidationParameters = new TokenValidationParameters
                     {
                         IssuerSigningKey = new SymmetricSecurityKey(key),
-                        RequireSignedTokens = true,
-                        RequireExpirationTime = true,
-                        ValidateAudience = false,
-                        ValidateIssuer = false,
-                        ValidateIssuerSigningKey = true,
-                        ValidateLifetime = true
+                        RequireSignedTokens = jwtSettings.RequireSignedTokens,
+                        RequireExpirationTime = jwtSettings.RequireExpirationTime,
+                        ValidateAudience = jwtSettings.ValidateAudience,
+                        ValidateIssuer = jwtSettings.ValidateIssuer,
+                        ValidateIssuerSigningKey = jwtSettings.ValidateIssuerSigningKey,
+                        ValidateLifetime = jwtSettings.ValidateLifetime,
                     };
                 });
 
