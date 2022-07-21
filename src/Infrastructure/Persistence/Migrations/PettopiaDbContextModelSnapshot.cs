@@ -391,8 +391,8 @@ namespace Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Domain.Entities.Posts.Post", b =>
                 {
-                    b.HasOne("Domain.Entities.Users.Member", null)
-                        .WithMany()
+                    b.HasOne("Domain.Entities.Users.Member", "Author")
+                        .WithMany("Posts")
                         .HasForeignKey("CreatedBy")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -422,6 +422,8 @@ namespace Infrastructure.Persistence.Migrations
                             b1.WithOwner()
                                 .HasForeignKey("PostId");
                         });
+
+                    b.Navigation("Author");
 
                     b.Navigation("Images");
                 });
@@ -710,9 +712,9 @@ namespace Infrastructure.Persistence.Migrations
                     b.Navigation("Applications");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Posts.Post", b =>
+            modelBuilder.Entity("Domain.Entities.Users.Member", b =>
                 {
-                    b.Navigation("Applications");
+                    b.Navigation("Posts");
                 });
 #pragma warning restore 612, 618
         }

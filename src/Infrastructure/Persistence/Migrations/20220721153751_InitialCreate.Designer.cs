@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(PettopiaDbContext))]
-    [Migration("20220617050942_AddPosts")]
-    partial class AddPosts
+    [Migration("20220721153751_InitialCreate")]
+    partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -24,7 +24,7 @@ namespace Infrastructure.Persistence.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
 
-            modelBuilder.Entity("Domain.Entities.Post", b =>
+            modelBuilder.Entity("Domain.Entities.Posts.Post", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -57,11 +57,14 @@ namespace Infrastructure.Persistence.Migrations
                     b.Property<int>("PetSpecies")
                         .HasColumnType("int");
 
-                    b.Property<int>("PostStatus")
+                    b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.Property<int>("PostType")
+                    b.Property<int>("Type")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -70,16 +73,100 @@ namespace Infrastructure.Persistence.Migrations
                     b.ToTable("Posts");
                 });
 
-            modelBuilder.Entity("Infrastructure.Identity.ApplicationUser", b =>
+            modelBuilder.Entity("Domain.Entities.Posts.PostApplication", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ApplicantId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid>("PostId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("SubmittedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicantId");
+
+                    b.HasIndex("PostId");
+
+                    b.ToTable("Applications");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Users.Member", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("AboutMe")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("BirthDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("FacebookProfileUrl")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("InstagramProfileUrl")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("IsComplete")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("RegisteredAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Members");
+
+                    b.HasDiscriminator<string>("Role");
+                });
+
+            modelBuilder.Entity("Infrastructure.Identity.CustomIdentityUser", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
-
-                    b.Property<DateTime>("BirthDate")
-                        .HasColumnType("datetime2");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -91,16 +178,6 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
-
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
@@ -124,12 +201,6 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
-
-                    b.Property<string>("ProfilePictureUrl")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("RegisteredAt")
-                        .HasColumnType("datetime2");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
@@ -287,15 +358,48 @@ namespace Infrastructure.Persistence.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Entities.Post", b =>
+            modelBuilder.Entity("Domain.Entities.Users.Administrator", b =>
                 {
-                    b.HasOne("Infrastructure.Identity.ApplicationUser", null)
-                        .WithMany()
+                    b.HasBaseType("Domain.Entities.Users.Member");
+
+                    b.HasDiscriminator().HasValue("Admin");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Users.BackOfficeUser", b =>
+                {
+                    b.HasBaseType("Domain.Entities.Users.Member");
+
+                    b.HasDiscriminator().HasValue("BackOfficeUser");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Users.EndUser", b =>
+                {
+                    b.HasBaseType("Domain.Entities.Users.Member");
+
+                    b.HasDiscriminator().HasValue("User");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Users.Fosterer", b =>
+                {
+                    b.HasBaseType("Domain.Entities.Users.Member");
+
+                    b.Property<string>("OrganizationName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasDiscriminator().HasValue("Fosterer");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Posts.Post", b =>
+                {
+                    b.HasOne("Domain.Entities.Users.Member", "Author")
+                        .WithMany("Posts")
                         .HasForeignKey("CreatedBy")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.OwnsMany("Domain.Entities.PostImage", "Images", b1 =>
+                    b.OwnsMany("Domain.Entities.Posts.PostImage", "Images", b1 =>
                         {
                             b1.Property<Guid>("PostId")
                                 .HasColumnType("uniqueidentifier");
@@ -321,14 +425,122 @@ namespace Infrastructure.Persistence.Migrations
                                 .HasForeignKey("PostId");
                         });
 
+                    b.Navigation("Author");
+
                     b.Navigation("Images");
                 });
 
-            modelBuilder.Entity("Infrastructure.Identity.ApplicationUser", b =>
+            modelBuilder.Entity("Domain.Entities.Posts.PostApplication", b =>
                 {
+                    b.HasOne("Domain.Entities.Users.Member", null)
+                        .WithMany()
+                        .HasForeignKey("ApplicantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.Posts.Post", null)
+                        .WithMany("Applications")
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.OwnsOne("Domain.Entities.Posts.ApplicantInfo", "ApplicantInfo", b1 =>
+                        {
+                            b1.Property<Guid>("ApplicationId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("Email")
+                                .IsRequired()
+                                .HasMaxLength(100)
+                                .HasColumnType("nvarchar(100)");
+
+                            b1.Property<string>("Name")
+                                .IsRequired()
+                                .HasMaxLength(100)
+                                .HasColumnType("nvarchar(100)");
+
+                            b1.HasKey("ApplicationId");
+
+                            b1.ToTable("Applications");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ApplicationId");
+
+                            b1.OwnsOne("Domain.ValueObjects.PhoneNumber", "PhoneNumber", b2 =>
+                                {
+                                    b2.Property<Guid>("ApplicantInfoApplicationId")
+                                        .HasColumnType("uniqueidentifier");
+
+                                    b2.Property<string>("Number")
+                                        .IsRequired()
+                                        .HasMaxLength(12)
+                                        .HasColumnType("nvarchar(12)");
+
+                                    b2.Property<string>("Prefix")
+                                        .IsRequired()
+                                        .HasMaxLength(5)
+                                        .HasColumnType("nvarchar(5)");
+
+                                    b2.HasKey("ApplicantInfoApplicationId");
+
+                                    b2.ToTable("Applications");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("ApplicantInfoApplicationId");
+                                });
+
+                            b1.Navigation("PhoneNumber");
+                        });
+
+                    b.Navigation("ApplicantInfo")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Domain.Entities.Users.Member", b =>
+                {
+                    b.OwnsOne("Domain.ValueObjects.PhoneNumber", "PhoneNumber", b1 =>
+                        {
+                            b1.Property<string>("MemberId")
+                                .HasColumnType("nvarchar(450)");
+
+                            b1.Property<string>("Number")
+                                .IsRequired()
+                                .HasMaxLength(15)
+                                .HasColumnType("nvarchar(15)");
+
+                            b1.Property<string>("Prefix")
+                                .IsRequired()
+                                .HasMaxLength(5)
+                                .HasColumnType("nvarchar(5)");
+
+                            b1.HasKey("MemberId");
+
+                            b1.ToTable("Members");
+
+                            b1.WithOwner()
+                                .HasForeignKey("MemberId");
+                        });
+
+                    b.OwnsOne("Domain.Entities.Users.ProfilePicture", "ProfilePicture", b1 =>
+                        {
+                            b1.Property<string>("MemberId")
+                                .HasColumnType("nvarchar(450)");
+
+                            b1.Property<string>("Blob")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.HasKey("MemberId");
+
+                            b1.ToTable("Members");
+
+                            b1.WithOwner()
+                                .HasForeignKey("MemberId");
+                        });
+
                     b.OwnsOne("Domain.ValueObjects.Address", "Address", b1 =>
                         {
-                            b1.Property<string>("ApplicationUserId")
+                            b1.Property<string>("MemberId")
                                 .HasColumnType("nvarchar(450)");
 
                             b1.Property<string>("City")
@@ -355,15 +567,19 @@ namespace Infrastructure.Persistence.Migrations
                                 .HasMaxLength(10)
                                 .HasColumnType("nvarchar(10)");
 
-                            b1.HasKey("ApplicationUserId");
+                            b1.HasKey("MemberId");
 
-                            b1.ToTable("AspNetUsers");
+                            b1.ToTable("Members");
 
                             b1.WithOwner()
-                                .HasForeignKey("ApplicationUserId");
+                                .HasForeignKey("MemberId");
                         });
 
                     b.Navigation("Address");
+
+                    b.Navigation("PhoneNumber");
+
+                    b.Navigation("ProfilePicture");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -377,7 +593,7 @@ namespace Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("Infrastructure.Identity.ApplicationUser", null)
+                    b.HasOne("Infrastructure.Identity.CustomIdentityUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -386,7 +602,7 @@ namespace Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("Infrastructure.Identity.ApplicationUser", null)
+                    b.HasOne("Infrastructure.Identity.CustomIdentityUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -401,7 +617,7 @@ namespace Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Infrastructure.Identity.ApplicationUser", null)
+                    b.HasOne("Infrastructure.Identity.CustomIdentityUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -410,11 +626,97 @@ namespace Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("Infrastructure.Identity.ApplicationUser", null)
+                    b.HasOne("Infrastructure.Identity.CustomIdentityUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Domain.Entities.Users.Fosterer", b =>
+                {
+                    b.OwnsOne("Domain.Entities.Users.ApplicationForm", "ApplicationForm", b1 =>
+                        {
+                            b1.Property<string>("FostererId")
+                                .HasColumnType("nvarchar(450)");
+
+                            b1.Property<Guid>("Id")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.HasKey("FostererId");
+
+                            b1.ToTable("Members");
+
+                            b1.WithOwner()
+                                .HasForeignKey("FostererId");
+
+                            b1.OwnsMany("Domain.Entities.Users.AdoptionRequirement", "Requirements", b2 =>
+                                {
+                                    b2.Property<string>("ApplicationFormFostererId")
+                                        .HasColumnType("nvarchar(450)");
+
+                                    b2.Property<int>("Id")
+                                        .ValueGeneratedOnAdd()
+                                        .HasColumnType("int");
+
+                                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b2.Property<int>("Id"), 1L, 1);
+
+                                    b2.Property<string>("Requirement")
+                                        .IsRequired()
+                                        .HasMaxLength(200)
+                                        .HasColumnType("nvarchar(200)");
+
+                                    b2.HasKey("ApplicationFormFostererId", "Id");
+
+                                    b2.ToTable("AdoptionRequirement");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("ApplicationFormFostererId");
+                                });
+
+                            b1.Navigation("Requirements");
+                        });
+
+                    b.OwnsMany("Domain.Entities.Users.FostererPicture", "Pictures", b1 =>
+                        {
+                            b1.Property<string>("FostererId")
+                                .HasColumnType("nvarchar(450)");
+
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int");
+
+                            SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("Id"), 1L, 1);
+
+                            b1.Property<string>("Blob")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<int>("Order")
+                                .HasColumnType("int");
+
+                            b1.HasKey("FostererId", "Id");
+
+                            b1.ToTable("FostererPicture");
+
+                            b1.WithOwner()
+                                .HasForeignKey("FostererId");
+                        });
+
+                    b.Navigation("ApplicationForm")
+                        .IsRequired();
+
+                    b.Navigation("Pictures");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Posts.Post", b =>
+                {
+                    b.Navigation("Applications");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Users.Member", b =>
+                {
+                    b.Navigation("Posts");
                 });
 #pragma warning restore 612, 618
         }
